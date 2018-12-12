@@ -22,5 +22,5 @@ file(GLOB lib_dir
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ../)
 
 add_executable(${PROJECT_NAME} ${src_dir} ${lib_dir})
-target_include_directories(${PROJECT_NAME} PUBLIC include lib ${Gphoto2_INCLUDE_DIRS})
+target_include_directories(${PROJECT_NAME} PUBLIC include/ lib/ ${Gphoto2_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} PRIVATE ${Gphoto2_LIBRARIES})
