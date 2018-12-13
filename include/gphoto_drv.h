@@ -7,8 +7,8 @@ extern "C" {
 #endif
 
 int autodetect(CameraList *list, GPContext *context);
-int open_camera(Camera ** camera, const char *model, const char *port, GPContext *context);
 GPContext* create_context(void);
+int capture_to_memory(Camera *camera, GPContext *context, const char **ptr, unsigned long int *size);
 
 #ifdef __cplusplus
 }

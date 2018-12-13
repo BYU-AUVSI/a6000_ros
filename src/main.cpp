@@ -7,7 +7,10 @@ int main(int argc, char const *argv[]) {
     CameraConnector camLink = CameraConnector();
 
     camLink.blockingConnect();
-    
-    printf("did we connect???\n");
+
+    camLink.captureImage();
+
+    printf("did we cap??\n");
+
     return 0;
 }

@@ -18,13 +18,45 @@ void CameraConnector::close() {
     }
 }
 
+void CameraConnector::captureImage() {
+    if (connected) {    
+        char *data;
+        unsigned long size;
+        int	retval;
+        FILE 	*f;
+
+        retval = capture_to_memory(camera, context, (const char**)&data, &size);
+
+        if (retval < GP_OK) {
+            printf("Capture failed, aborting...");
+            return;
+        }
+
+        f = fopen("foo2.jpg", "wb");
+        if (f) {
+            retval = fwrite (data, size, 1, f);
+            if (retval != size) {
+                printf("  fwrite size %ld, written %d\n", size, retval);
+            }
+            fclose(f);
+        } else {
+            printf("  fopen foo2.jpg failed.\n");
+        }
+
+    } else {
+        printf("ERR: Trying to capture an image without a camera connected!\n");
+    }
+}
+
 bool CameraConnector::blockingConnect() {
-    bool connected = false;
+    if (connected) {
+        close(); // close out current context in event we're already connected
+    }
+    connected = false;
     
     CameraList *list;
     int ret = gp_list_new (&list);
 
-    close(); // close out current context in event we're already connected
 
      context = create_context();
  
@@ -42,7 +74,10 @@ bool CameraConnector::blockingConnect() {
         } else  {
             printf("Detected %d camera! Connecting to camera 1\n", cameraCount);
             
-            //further connection stuff
+            //further connection stuff:
+
+            // PTP driver by default tries to traverse entire camera file system on connect.
+            // there's a way to stop it from doing this if it becomes untenable (see libgphoto2's sample-capture)
             gp_camera_new(&camera);
             int initRet = gp_camera_init(camera, context);
             if (initRet < GP_OK) {
