@@ -12,15 +12,14 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMakeModules)
 find_package(Gphoto2 REQUIRED)
 
 file(GLOB src_dir
+    "src/driver/*.c"
     "src/*.cpp"
 )
 
-file(GLOB lib_dir
-    "lib/*.c"
-)
+message(STATUS ${PROJECT_SOURCE_DIR})
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ../)
 
-add_executable(${PROJECT_NAME} ${src_dir} ${lib_dir})
-target_include_directories(${PROJECT_NAME} PUBLIC include/ lib/ ${Gphoto2_INCLUDE_DIRS})
+add_executable(${PROJECT_NAME} ${src_dir})
+target_include_directories(${PROJECT_NAME} PUBLIC  ${PROJECT_SOURCE_DIR}/include ${Gphoto2_INCLUDE_DIRS}) #
 target_link_libraries(${PROJECT_NAME} PRIVATE ${Gphoto2_LIBRARIES})
