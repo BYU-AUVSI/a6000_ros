@@ -3,3 +3,4 @@ build/
 a6000_ros_driver.dSYM/
 .DS_STORE
 a6000_ros_driver
+*.jpg

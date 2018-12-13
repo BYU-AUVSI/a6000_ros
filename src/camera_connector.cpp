@@ -18,34 +18,40 @@ void CameraConnector::close() {
     }
 }
 
-void CameraConnector::captureImage() {
+char* CameraConnector::captureImage(char* image_data, unsigned long* size) {
     if (connected) {    
-        char *data;
-        unsigned long size;
-        int	retval;
-        FILE 	*f;
-
-        retval = capture_to_memory(camera, context, (const char**)&data, &size);
+        int	retval = capture_to_memory(camera, context, (const char**)&image_data, size);
 
         if (retval < GP_OK) {
             printf("Capture failed, aborting...");
-            return;
+            return nullptr;
         }
+    } else {
+        printf("ERR: Trying to capture an image without a camera connected!\n");
+        return nullptr;
+    }
+    return image_data;
+}
 
-        f = fopen("foo2.jpg", "wb");
+bool CameraConnector::writeImageToFile(const char* file_name, const char* image_data, unsigned long size) {
+    int retval;
+    FILE* f;
+
+    if (image_data != nullptr) {
+        std::cout << "Save image to " << file_name << endl;
+        f = fopen(file_name, "wb");
         if (f) {
-            retval = fwrite (data, size, 1, f);
+            retval = fwrite(image_data, size, 1, f);
             if (retval != size) {
                 printf("  fwrite size %ld, written %d\n", size, retval);
             }
             fclose(f);
+            return true;
         } else {
-            printf("  fopen foo2.jpg failed.\n");
+            std::cout << "  fopen " << file_name << " failed." << endl;
         }
-
-    } else {
-        printf("ERR: Trying to capture an image without a camera connected!\n");
     }
+    return false; // we only get here if something failed
 }
 
 bool CameraConnector::blockingConnect() {

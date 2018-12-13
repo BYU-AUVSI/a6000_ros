@@ -16,7 +16,9 @@ public:
 
     bool blockingConnect();
 
-    void captureImage();
+    char* captureImage(char* image_data, unsigned long* size);
+    bool writeImageToFile(const char* file_name, const char* image_data, unsigned long size);
+
     void close();
 
 private:
