@@ -18,16 +18,33 @@ void CameraConnector::close() {
     }
 }
 
-void CameraConnector::getConfigInfo(const ConfigSetting* setting, char* info) {
-    char* currentValue;
-    char* possibleValues;
+std::string CameraConnector::getConfigInfo(const ConfigSetting* setting) {
+    char currentValue[50];
+    std::string ret = setting->name;
+    ret += '\n';
 
+    if (getConfigStringValue(setting->settingLabel, (char*) currentValue)) {
+        ret += "Current Setting: ";
+        ret += currentValue;
+        ret += '\n';
+    }
 
+    string configOpts[MAX_CONFIG_VALUE_COUNT];
+    int numValues;
+    if (getConfigOptions(setting, configOpts, &numValues)) {
+        ret += '{';
+        for (int i = 0; i < numValues; i++) {
+            ret += configOpts[i] + ", ";
+        }
+        ret += "}\n";
+    }
 
+    return ret;
 }
 
-void CameraConnector::getConfigOptions(const ConfigSetting* setting, std::string* values, int* numValues) {
+bool CameraConnector::getConfigOptions(const ConfigSetting* setting, std::string* values, int* numValues) {
     char* test[MAX_CONFIG_VALUE_COUNT];
+    int ret;
 
     if (connected) {
 
@@ -36,23 +53,31 @@ void CameraConnector::getConfigOptions(const ConfigSetting* setting, std::string
                 values[i] = (setting->possibleValues[i]);
             }
             *numValues = setting->numPossibleValues;
+            return true;
         } else {
+            // get our config type, also make sure the setting currently exists on our camera
             int type = get_config_type(camera, setting->settingLabel, context);
             if (type < GP_OK) {
                 printf("Something went wrong while trying to get config type for (%s) - %d\n", setting->settingLabel, type);
-                return;
+                return false;
             }
 
+            // now that we know the type, properly handle it
             switch(type) {
                 case GP_WIDGET_MENU:
                 case GP_WIDGET_RADIO:
                 case GP_WIDGET_TEXT:
-                    get_config_value_string_choices(context, camera, setting->settingLabel, test, numValues);
+                    ret = get_config_value_string_choices(context, camera, setting->settingLabel, test, numValues);
+                    if (ret < GP_OK) {
+                        printf("ERR: Failed to retrieve config option values: %d\n", ret);
+                        return false;
+                    }
+                    //Todo: this could be better. Taking the char*[] and copying to a string[]
                     for (int i = 0; i < *numValues; i++) {
                         values[i] = (test[i]);
                     }
-                    return;
-                //case GP_WIDGET_RANGE:
+                    return true;
+                //case GP_WIDGET_RANGE: // todo: add support for range min, max, step getting (function exists in config.c)
                 default:
                     printf("Sorry, currently this driver only supports a limited number of configuration types\n");
                     std::cout << "If you're trying to dynamically get config options for a RANGE widget, there are methods "
@@ -64,39 +89,45 @@ void CameraConnector::getConfigOptions(const ConfigSetting* setting, std::string
     } else {
         printf("ERR: Trying to get camera config options without a camera connected!\n");
     }
-    return;
+    return false;
 
 }
 
-void CameraConnector::getConfigStringValue(const char* key, char* value) {
+bool CameraConnector::getConfigStringValue(const char* key, char* value) {
     char*  rawStr;
+    int    ret;
+    float  rangeValue;
     
     if (connected) {
 
+        // Get the type of config option that's hoping to be retrieved.
+        // If the config option doesnt exist, this method will let us know
         int type = get_config_type(camera, key, context);
         if (type < GP_OK) {
             printf("Something went wrong while trying to get config type for (%s) - %d\n", key, type);
-            return;
+            return false;
         }
 
-        float test;
-
+        // Now that we know the type, we know how to retrieve it properly
         switch(type) {
             case GP_WIDGET_MENU:
             case GP_WIDGET_RADIO:
             case GP_WIDGET_TEXT:
-                get_config_value_string(context, camera, key, &rawStr);
-                // get_config_value_string_choices(context, camera, key);
-                // then its represented by a string
+                ret = get_config_value_string(context, camera, key, &rawStr);
+                if (ret < GP_OK) {
+                    printf("ERR: Failed to retrieve current config string value %d\n", ret);
+                    return false;
+                }
                 sprintf(value, "%s", rawStr);
-                // value = strdup((char*) rawValue);
-                return;
+                return true;
             case GP_WIDGET_RANGE:
-                test = get_config_value_float(context, camera, key);
-                // Range is represented as a float
-                // you know what C? This is why people hate you:
-                sprintf(value, "%f", test);//*(rawValue));
-                return;
+                rangeValue = get_config_value_float(context, camera, key);
+                if (rangeValue < GP_OK) {
+                    printf("ERR: Failed to retrieve current config float value %2.0f\n", rangeValue);
+                    return false;
+                }
+                sprintf(value, "%f", rangeValue);
+                return true;
             default:
                 printf("Sorry, currently this driver only supports a limited number of configuration types\n");
         }
@@ -104,7 +135,7 @@ void CameraConnector::getConfigStringValue(const char* key, char* value) {
     } else {
         printf("ERR: Trying to get camera config value without a camera connected!\n");
     }
-    return;
+    return false;
 }
 
 bool CameraConnector::captureImage(const char** image_data, unsigned long* size) {

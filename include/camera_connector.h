@@ -7,8 +7,7 @@
 #include <sstream>
 #include <fcntl.h> //file stuff. dont need?
 
-#define MAX_CONFIG_VALUE_COUNT 40
-
+#define MAX_CONFIG_VALUE_COUNT 60
 using namespace std;
 
 class CameraConnector{
@@ -29,21 +28,21 @@ public:
      * as a single string. 
      * 
      * @param setting: Pointer to the configuration setting to get info on 
-     * @param info: The String to be populated with the relevant information
-     *              Formatted as:
-     *                  "Setting Name\n
-     *                   CurrentValue\n
-     *                   {PossibleValue1, PossibleValue2...}"
+     * @returns: A string with the relevant information
+     *           Formatted as:
+     *            "Setting Name\n
+     *             CurrentValue\n
+     *            {PossibleValue1, PossibleValue2...}"
      */
-    void getConfigInfo(const ConfigSetting* setting, char* info);
+    std::string getConfigInfo(const ConfigSetting* setting);
     /**
      * Get Config value of the given Setting as a String 
      * 
      * @param 
      * @param value: value of the current setting as a string
      */
-    void getConfigStringValue(const char* key, char* value);
-    void getConfigOptions(const ConfigSetting* setting, std::string* values, int* numValues);
+    bool getConfigStringValue(const char* key, char* value);
+    bool getConfigOptions(const ConfigSetting* setting, std::string* values, int* numValues);
 
     void close();
 
