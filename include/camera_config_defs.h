@@ -5,7 +5,8 @@ typedef struct ConfigSetting {
     const char*  name;  // nice name we give a setting for outside access
     const char*  settingLabel; // setting label in the driver
     bool   hasPossibleValues; // boolean as to whether we manually specified all possible values
-    const void** possibleValues; // all possible values, if they needed to be manually specified
+    const char** possibleValues; // all possible values, if they needed to be manually specified
+    const int numPossibleValues;
 } ConfigSetting;
 
 class A6000Config {

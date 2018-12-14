@@ -158,7 +158,7 @@ int get_config_value_float_range(GPContext* context, Camera* camera, const char*
 	return ret;
 }
 
-int get_config_value_string_choices(GPContext* context, Camera* camera, const char* key) {
+int get_config_value_string_choices(GPContext* context, Camera* camera, const char* key, char* values[], int* numValues) {
 	CameraWidget		*widget = NULL, *child = NULL;
 	int					ret;
 	int					i = 0;
@@ -190,7 +190,6 @@ int get_config_value_string_choices(GPContext* context, Camera* camera, const ch
 		gp_widget_free(widget);
 		return choiceCount;
 	}
-	printf("  This setting has %d choices!::\n", choiceCount);
 
 	while (i < choiceCount) {
 		ret = gp_widget_get_choice(child, i, (const char**) &choice);
@@ -199,10 +198,10 @@ int get_config_value_string_choices(GPContext* context, Camera* camera, const ch
 			gp_widget_free(widget);
 			return ret;
 		}
-		printf(" %s,", choice);
+		(values)[i] = strdup(choice);
 		i++;
 	}
-	printf("\n\n");
+	*numValues = choiceCount;
 
 	gp_widget_free(widget);
 	return ret;
@@ -269,7 +268,7 @@ int set_config_value_string(Camera *camera, const char *key, const char *val, GP
 			return ret;
 		}
 	}
-out:
-	gp_widget_free (widget);
-	return ret;
+	out:
+		gp_widget_free (widget);
+		return ret;
 }

@@ -18,6 +18,56 @@ void CameraConnector::close() {
     }
 }
 
+void CameraConnector::getConfigInfo(const ConfigSetting* setting, char* info) {
+    char* currentValue;
+    char* possibleValues;
+
+
+
+}
+
+void CameraConnector::getConfigOptions(const ConfigSetting* setting, std::string* values, int* numValues) {
+    char* test[MAX_CONFIG_VALUE_COUNT];
+
+    if (connected) {
+
+        if (setting->hasPossibleValues) {
+            for (int i = 0; i < setting->numPossibleValues; i++) {
+                values[i] = (setting->possibleValues[i]);
+            }
+            *numValues = setting->numPossibleValues;
+        } else {
+            int type = get_config_type(camera, setting->settingLabel, context);
+            if (type < GP_OK) {
+                printf("Something went wrong while trying to get config type for (%s) - %d\n", setting->settingLabel, type);
+                return;
+            }
+
+            switch(type) {
+                case GP_WIDGET_MENU:
+                case GP_WIDGET_RADIO:
+                case GP_WIDGET_TEXT:
+                    get_config_value_string_choices(context, camera, setting->settingLabel, test, numValues);
+                    for (int i = 0; i < *numValues; i++) {
+                        values[i] = (test[i]);
+                    }
+                    return;
+                //case GP_WIDGET_RANGE:
+                default:
+                    printf("Sorry, currently this driver only supports a limited number of configuration types\n");
+                    std::cout << "If you're trying to dynamically get config options for a RANGE widget, there are methods "
+                            << "available in config.c. I just found the results to be unsatisfactory for the camera I "
+                            << "was using so instead statically defined the possible options" << endl;;
+            }
+        }
+
+    } else {
+        printf("ERR: Trying to get camera config options without a camera connected!\n");
+    }
+    return;
+
+}
+
 void CameraConnector::getConfigStringValue(const char* key, char* value) {
     char*  rawStr;
     
@@ -29,11 +79,6 @@ void CameraConnector::getConfigStringValue(const char* key, char* value) {
             return;
         }
 
-        // int ret = get_config_value(camera, key, (const void**)&rawValue, context);
-        // if (ret < GP_OK) {
-        //     printf("Something went wrong while trying to get config value for (%s) - %d\n", key, ret);
-        //     return;
-        // }
         float test;
 
         switch(type) {
@@ -41,7 +86,7 @@ void CameraConnector::getConfigStringValue(const char* key, char* value) {
             case GP_WIDGET_RADIO:
             case GP_WIDGET_TEXT:
                 get_config_value_string(context, camera, key, &rawStr);
-                get_config_value_string_choices(context, camera, key);
+                // get_config_value_string_choices(context, camera, key);
                 // then its represented by a string
                 sprintf(value, "%s", rawStr);
                 // value = strdup((char*) rawValue);
@@ -57,7 +102,7 @@ void CameraConnector::getConfigStringValue(const char* key, char* value) {
         }
         
     } else {
-        printf("ERR: Trying to get camera config info without a camera connected!\n");
+        printf("ERR: Trying to get camera config value without a camera connected!\n");
     }
     return;
 }
