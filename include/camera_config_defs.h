@@ -1,20 +1,30 @@
 
+#define MAX_POSSIBLE_SETTING_VALUES 55
+
+typedef struct ConfigSetting {
+    const char*  name;  // nice name we give a setting for outside access
+    const char*  settingLabel; // setting label in the driver
+    bool   hasPossibleValues; // boolean as to whether we manually specified all possible values
+    const void** possibleValues; // all possible values, if they needed to be manually specified
+} ConfigSetting;
+
 class A6000Config {
 public:
-    static const char* IMAGE_SIZE;
-    static const char* ISO;
-    static const char* COLOR_TEMP;
-    static const char* WHITE_BALANCE;
-    static const char* EXPOSURE_COMP;
-    static const char* FLASH_MODE;
-    static const char* F_STOP;
-    static const char* IMAGE_QUALITY;
-    static const char* FOCUS_MODE;
-    static const char* EXP_PROGRAM;
-    static const char* ASPECT_RATIO;
-    static const char* CAPTURE_MODE;
-    static const char* SHUTTER_SPEED;
-    static const char* EXPOSURE_METER_MODE;
+    //I got all these possible settings by running: gphoto2 --list-config
+    static const ConfigSetting IMAGE_SIZE;
+    static const ConfigSetting ISO;
+    // static const ConfigSetting COLOR_TEMP; // I have issues with this one and it doesnt seem too important
+    static const ConfigSetting WHITE_BALANCE;
+    static const ConfigSetting EXPOSURE_COMP;
+    static const ConfigSetting FLASH_MODE;
+    static const ConfigSetting F_STOP;
+    static const ConfigSetting IMAGE_QUALITY;
+    static const ConfigSetting FOCUS_MODE;
+    static const ConfigSetting EXP_PROGRAM;
+    static const ConfigSetting ASPECT_RATIO;
+    static const ConfigSetting CAPTURE_MODE;
+    static const ConfigSetting SHUTTER_SPEED;
+    static const ConfigSetting EXPOSURE_METER_MODE;
 };
 
 
@@ -25,6 +35,8 @@ public:
 //     return all;
 // }
 
+// This is the relevant info that `gphoto2 --list-config` returns
+// for the driver, you only need the last setting name ie: 'shutterspeed'
 // /main/actions/bulb                                                             
 // /main/actions/movie
 // /main/status/serialnumber

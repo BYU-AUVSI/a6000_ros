@@ -41,6 +41,7 @@ void CameraConnector::getConfigStringValue(const char* key, char* value) {
             case GP_WIDGET_RADIO:
             case GP_WIDGET_TEXT:
                 get_config_value_string(context, camera, key, &rawStr);
+                get_config_value_string_choices(context, camera, key);
                 // then its represented by a string
                 sprintf(value, "%s", rawStr);
                 // value = strdup((char*) rawValue);

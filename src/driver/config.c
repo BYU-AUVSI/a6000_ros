@@ -56,7 +56,7 @@ int get_config_type(Camera *camera, const char *key, GPContext *context) {
 float get_config_value_float(GPContext *context, Camera *camera, const char *key) {
 	CameraWidget		*widget = NULL, *child = NULL;
 	int					ret;
-	float test;
+	float 				test;
 
 	ret = gp_camera_get_single_config (camera, key, &child, context);
 	if (ret == GP_OK) {
@@ -84,7 +84,7 @@ float get_config_value_float(GPContext *context, Camera *camera, const char *key
 		gp_widget_free (widget);
 		return (float) ret;
 	}
-	gp_widget_free (widget);
+	gp_widget_free(widget);
 	return test;
 }
 
@@ -118,11 +118,95 @@ int get_config_value_string(GPContext *context, Camera *camera, const char *key,
 		goto out;
 	}
 	*val = strdup(str);
-out:
-	gp_widget_free (widget);
+	out :
+		gp_widget_free (widget);
+		return ret;
+}
+
+/**
+ * This method does work. However, for the a6000 I'm testing with, the range it gives
+ * for fstop is totally bogus, so if you want to safely check the value being fed before
+ * setting a config, this wouldn't help you.
+ */
+int get_config_value_float_range(GPContext* context, Camera* camera, const char* key, float* min, float* max, float* step) {
+	CameraWidget		*widget = NULL, *child = NULL;
+	int					ret;
+
+	ret = gp_camera_get_single_config(camera, key, &child, context);
+	if (ret == GP_OK) {
+		if (!child) printf("   child is NULL?\n");
+		widget = child;
+	} else {
+		ret = gp_camera_get_config(camera, &widget, context);
+		if (ret < GP_OK) {
+			printf("   camera_get_config failed: %d\n", ret);
+			return ret;
+		}
+		ret = _lookup_widget(widget, key, &child);
+		if (ret < GP_OK) {
+			printf("   lookup widget failed: %d\n", ret);
+			gp_widget_free(widget);
+			return ret;
+		}
+	}
+
+	ret = gp_widget_get_range(child, min, max, step);
+	if (ret < GP_OK) {
+		printf("   could not query widget float range: %d\n", ret);
+	}
+	gp_widget_free(widget);
 	return ret;
 }
 
+int get_config_value_string_choices(GPContext* context, Camera* camera, const char* key) {
+	CameraWidget		*widget = NULL, *child = NULL;
+	int					ret;
+	int					i = 0;
+	int 				choiceCount;
+	char*				choice;
+
+	ret = gp_camera_get_single_config (camera, key, &child, context);
+	if (ret == GP_OK) {
+		if (!child) printf("   child is NULL?\n");
+		widget = child;
+	} else {
+		ret = gp_camera_get_config (camera, &widget, context);
+		if (ret < GP_OK) {
+			printf("   camera_get_config failed: %d\n", ret);
+			return ret;
+		}
+		ret = _lookup_widget (widget, key, &child);
+		if (ret < GP_OK) {
+			printf("   lookup widget failed: %d\n", ret);
+			gp_widget_free(widget);
+			return ret;
+		}
+	}
+
+	choiceCount = gp_widget_count_choices(child);
+
+	if (choiceCount < GP_OK) {
+		printf("   Failed to retrieve number of available choices: %d\n", choiceCount);
+		gp_widget_free(widget);
+		return choiceCount;
+	}
+	printf("  This setting has %d choices!::\n", choiceCount);
+
+	while (i < choiceCount) {
+		ret = gp_widget_get_choice(child, i, (const char**) &choice);
+		if (choiceCount < GP_OK) {
+			printf("   Failed to retrieve choice number %d: %d\n", i, choiceCount);
+			gp_widget_free(widget);
+			return ret;
+		}
+		printf(" %s,", choice);
+		i++;
+	}
+	printf("\n\n");
+
+	gp_widget_free(widget);
+	return ret;
+}
 
 
 /* Sets a string configuration value.
