@@ -10,6 +10,11 @@ int autodetect(CameraList *list, GPContext *context);
 GPContext* create_context(void);
 int capture_to_memory(Camera *camera, GPContext *context, const char **ptr, unsigned long int *size);
 
+//config functions:
+float get_config_value_float(GPContext *context, Camera *camera, const char *key);
+int get_config_value_string(GPContext *context, Camera *camera, const char *key, char **val);
+int get_config_type(Camera *camera, const char *key, GPContext *context);
+
 #ifdef __cplusplus
 }
 #endif

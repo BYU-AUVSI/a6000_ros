@@ -16,8 +16,11 @@ public:
 
     bool blockingConnect();
 
-    char* captureImage(char* image_data, unsigned long* size);
+    bool captureImage(const char** image_data, unsigned long* size);
     bool writeImageToFile(const char* file_name, const char* image_data, unsigned long size);
+
+    //delete me!!
+    void getConfigStringValue(const char* key, char* value);
 
     void close();
 
@@ -26,3 +29,5 @@ private:
     Camera *camera = nullptr;
     bool connected;
 };
+
+

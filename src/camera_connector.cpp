@@ -18,19 +18,62 @@ void CameraConnector::close() {
     }
 }
 
-char* CameraConnector::captureImage(char* image_data, unsigned long* size) {
+void CameraConnector::getConfigStringValue(const char* key, char* value) {
+    char*  rawStr;
+    
+    if (connected) {
+
+        int type = get_config_type(camera, key, context);
+        if (type < GP_OK) {
+            printf("Something went wrong while trying to get config type for (%s) - %d\n", key, type);
+            return;
+        }
+
+        // int ret = get_config_value(camera, key, (const void**)&rawValue, context);
+        // if (ret < GP_OK) {
+        //     printf("Something went wrong while trying to get config value for (%s) - %d\n", key, ret);
+        //     return;
+        // }
+        float test;
+
+        switch(type) {
+            case GP_WIDGET_MENU:
+            case GP_WIDGET_RADIO:
+            case GP_WIDGET_TEXT:
+                get_config_value_string(context, camera, key, &rawStr);
+                // then its represented by a string
+                sprintf(value, "%s", rawStr);
+                // value = strdup((char*) rawValue);
+                return;
+            case GP_WIDGET_RANGE:
+                test = get_config_value_float(context, camera, key);
+                // Range is represented as a float
+                // you know what C? This is why people hate you:
+                sprintf(value, "%f", test);//*(rawValue));
+                return;
+            default:
+                printf("Sorry, currently this driver only supports a limited number of configuration types\n");
+        }
+        
+    } else {
+        printf("ERR: Trying to get camera config info without a camera connected!\n");
+    }
+    return;
+}
+
+bool CameraConnector::captureImage(const char** image_data, unsigned long* size) {
     if (connected) {    
-        int	retval = capture_to_memory(camera, context, (const char**)&image_data, size);
+        int	retval = capture_to_memory(camera, context, image_data, size);
 
         if (retval < GP_OK) {
-            printf("Capture failed, aborting...");
-            return nullptr;
+            printf("Capture failed (%d), aborting...", retval);
+            return false;
         }
     } else {
         printf("ERR: Trying to capture an image without a camera connected!\n");
-        return nullptr;
+        return false;
     }
-    return image_data;
+    return true;
 }
 
 bool CameraConnector::writeImageToFile(const char* file_name, const char* image_data, unsigned long size) {
