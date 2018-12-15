@@ -5,6 +5,8 @@
 #include <unistd.h>
 #include <iostream>
 #include <sstream>
+#include <vector>
+#include <algorithm>
 #include <fcntl.h> //file stuff. dont need?
 
 #define MAX_CONFIG_VALUE_COUNT 60
@@ -35,14 +37,28 @@ public:
      *            {PossibleValue1, PossibleValue2...}"
      */
     std::string getConfigInfo(const ConfigSetting* setting);
+    
     /**
      * Get Config value of the given Setting as a String 
      * 
-     * @param 
-     * @param value: value of the current setting as a string
+     * @param setting: The setting to retrieve the current value for
+     * @param value: Will hold the current value for the setting if successful
+     * @returns: Success status. True if successfully retrieved current config value, otherwise false.
      */
-    bool getConfigStringValue(const char* key, char* value);
-    bool getConfigOptions(const ConfigSetting* setting, std::string* values, int* numValues);
+    bool getConfigStringValue(const ConfigSetting* setting, char* value);
+    
+    /**
+     * Get the potential values for a setting as an array of strings
+     * 
+     * @param setting: setting to get the possible options for
+     * @param values: String[] to store the possible values in
+     * @param numValues: Int pointer which on return will hold the total
+     *                   number of possible values for the setting (if successful)
+     * @returns: Success status. True if successfully retrieved config options, otherwise false
+     */
+    bool getConfigOptions(const ConfigSetting* setting, vector<string>* values, int* numValues);
+
+    bool setConfigValue(const ConfigSetting* setting, std::string value);
 
     void close();
 

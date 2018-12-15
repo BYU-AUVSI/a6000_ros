@@ -23,15 +23,15 @@ std::string CameraConnector::getConfigInfo(const ConfigSetting* setting) {
     std::string ret = setting->name;
     ret += '\n';
 
-    if (getConfigStringValue(setting->settingLabel, (char*) currentValue)) {
+    if (getConfigStringValue(setting, (char*) currentValue)) {
         ret += "Current Setting: ";
         ret += currentValue;
         ret += '\n';
     }
 
-    string configOpts[MAX_CONFIG_VALUE_COUNT];
+    vector<string> configOpts(MAX_CONFIG_VALUE_COUNT);
     int numValues;
-    if (getConfigOptions(setting, configOpts, &numValues)) {
+    if (getConfigOptions(setting, &configOpts, &numValues)) {
         ret += '{';
         for (int i = 0; i < numValues; i++) {
             ret += configOpts[i] + ", ";
@@ -42,7 +42,7 @@ std::string CameraConnector::getConfigInfo(const ConfigSetting* setting) {
     return ret;
 }
 
-bool CameraConnector::getConfigOptions(const ConfigSetting* setting, std::string* values, int* numValues) {
+bool CameraConnector::getConfigOptions(const ConfigSetting* setting, vector<string>* values, int* numValues) {
     char* test[MAX_CONFIG_VALUE_COUNT];
     int ret;
 
@@ -50,7 +50,7 @@ bool CameraConnector::getConfigOptions(const ConfigSetting* setting, std::string
 
         if (setting->hasPossibleValues) {
             for (int i = 0; i < setting->numPossibleValues; i++) {
-                values[i] = (setting->possibleValues[i]);
+                (*values)[i] = (setting->possibleValues[i]);
             }
             *numValues = setting->numPossibleValues;
             return true;
@@ -74,7 +74,7 @@ bool CameraConnector::getConfigOptions(const ConfigSetting* setting, std::string
                     }
                     //Todo: this could be better. Taking the char*[] and copying to a string[]
                     for (int i = 0; i < *numValues; i++) {
-                        values[i] = (test[i]);
+                        (*values)[i] = (test[i]);
                     }
                     return true;
                 //case GP_WIDGET_RANGE: // todo: add support for range min, max, step getting (function exists in config.c)
@@ -93,7 +93,7 @@ bool CameraConnector::getConfigOptions(const ConfigSetting* setting, std::string
 
 }
 
-bool CameraConnector::getConfigStringValue(const char* key, char* value) {
+bool CameraConnector::getConfigStringValue(const ConfigSetting* setting, char* value) {
     char*  rawStr;
     int    ret;
     float  rangeValue;
@@ -102,9 +102,9 @@ bool CameraConnector::getConfigStringValue(const char* key, char* value) {
 
         // Get the type of config option that's hoping to be retrieved.
         // If the config option doesnt exist, this method will let us know
-        int type = get_config_type(camera, key, context);
+        int type = get_config_type(camera, setting->settingLabel, context);
         if (type < GP_OK) {
-            printf("Something went wrong while trying to get config type for (%s) - %d\n", key, type);
+            printf("Something went wrong while trying to get config type for (%s) - %d\n", setting->settingLabel, type);
             return false;
         }
 
@@ -113,7 +113,7 @@ bool CameraConnector::getConfigStringValue(const char* key, char* value) {
             case GP_WIDGET_MENU:
             case GP_WIDGET_RADIO:
             case GP_WIDGET_TEXT:
-                ret = get_config_value_string(context, camera, key, &rawStr);
+                ret = get_config_value_string(context, camera, setting->settingLabel, &rawStr);
                 if (ret < GP_OK) {
                     printf("ERR: Failed to retrieve current config string value %d\n", ret);
                     return false;
@@ -121,7 +121,7 @@ bool CameraConnector::getConfigStringValue(const char* key, char* value) {
                 sprintf(value, "%s", rawStr);
                 return true;
             case GP_WIDGET_RANGE:
-                rangeValue = get_config_value_float(context, camera, key);
+                rangeValue = get_config_value_float(context, camera, setting->settingLabel);
                 if (rangeValue < GP_OK) {
                     printf("ERR: Failed to retrieve current config float value %2.0f\n", rangeValue);
                     return false;
@@ -134,6 +134,28 @@ bool CameraConnector::getConfigStringValue(const char* key, char* value) {
         
     } else {
         printf("ERR: Trying to get camera config value without a camera connected!\n");
+    }
+    return false;
+}
+
+bool CameraConnector::setConfigValue(const ConfigSetting* setting, std::string value) {
+    vector<string> configOpts(MAX_CONFIG_VALUE_COUNT);
+    int numConfigValues;
+
+    if (connected) {
+        
+        // Get possible values for this setting to make sure input is good
+        if (getConfigOptions(setting, &configOpts, &numConfigValues)) {
+            if (std::find(configOpts.begin(), configOpts.end(), value) != configOpts.end()) {
+                printf("the value existssssss\n");
+            } else {
+                printf("ERR:: Trying to change %s to a non-permissible value (%s). To get a list of permissible values, call getConfigInfo\n", setting->name, value.c_str());
+                // (*resultDescription) = "Proposed value for setting is not allowed. To get a list of possible values, call /config_get_opts";
+            }
+        }
+
+    } else {
+        printf("ERR: Trying to set camera config value without a camera connected!\n");
     }
     return false;
 }
