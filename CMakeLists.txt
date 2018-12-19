@@ -1,4 +1,5 @@
-cmake_minimum_required(VERSION 3.7)
+# default version of cmake on 16.04 is 3.5.1
+cmake_minimum_required(VERSION 2.8.3)
 project(a6000_ros_driver)
 
 
