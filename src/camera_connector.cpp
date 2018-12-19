@@ -142,15 +142,38 @@ bool CameraConnector::setConfigValue(const ConfigSetting* setting, std::string v
     vector<string> configOpts(MAX_CONFIG_VALUE_COUNT);
     int numConfigValues;
     int ret;
+    float fValue;
 
     if (connected) {
         
         // Get possible values for this setting to make sure input is valid
         if (getConfigOptions(setting, &configOpts, &numConfigValues)) {
             if (std::find(configOpts.begin(), configOpts.end(), value) != configOpts.end()) {
+                
                 // properly handle setting based on the config setting type
-                printf("the value existssssss\n");
-                ret = set_config_value_string(context, camera, setting->settingLabel, value.c_str());
+                int type = get_config_type(context, camera, setting->settingLabel);
+                if (type < GP_OK) {
+                    printf("Something went wrong while trying to get config type for (%s) - %d\n", setting->settingLabel, type);
+                    return false;
+                }
+
+                // Now that we know the type, we can set it properly
+                switch(type) {
+                    case GP_WIDGET_MENU:
+                    case GP_WIDGET_RADIO:
+                    case GP_WIDGET_TEXT:
+                        ret = set_config_value(context, camera, setting->settingLabel, value.c_str());
+                        break;
+                    case GP_WIDGET_RANGE:
+                        fValue = atof(value.c_str());
+                        ret = set_config_value(context, camera, setting->settingLabel, &fValue);
+                        break;
+                    default:
+                        printf("Sorry, currently this driver only supports a limited number of configuration types\n");
+                        return false;
+                }
+
+                
                 if (ret >= GP_OK) {
                     printf("Successfully updated %s!\n", setting->name);
                     return true;

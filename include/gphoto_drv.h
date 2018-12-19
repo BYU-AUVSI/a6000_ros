@@ -18,7 +18,7 @@ int get_config_value_string_choices(GPContext* context, Camera* camera, const ch
 int get_config_type(GPContext *context, Camera *camera, const char *key);
 
 //config setter functions:
-int set_config_value_string(GPContext *context, Camera *camera, const char *key, const char *val);
+int set_config_value(GPContext *context, Camera *camera, const char *key, const void *val);
 
 #ifdef __cplusplus
 }

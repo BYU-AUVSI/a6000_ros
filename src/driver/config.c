@@ -207,17 +207,16 @@ int get_config_value_string_choices(GPContext* context, Camera* camera, const ch
 	return ret;
 }
 
-
-/* Sets a string configuration value.
- * This can set for:
- *  - A Text widget
- *  - The current selection of a Radio Button choice
- *  - The current selection of a Menu choice
- *
- * Sample (for Canons eg):
- *   get_config_value_string (camera, "owner", &ownerstr, context);
+/**
+ * Updates a value for a setting of the given key name
+ * Note the value is a void*, you should know what type (char*, float) the 
+ * key you're trying to set is expecting before calling this function.
+ * 
+ * You can use the get_config_type method to find out what type a particular
+ * key should have
+ * 
  */
-int set_config_value_string(GPContext *context, Camera *camera, const char *key, const char *val) {
+int set_config_value(GPContext *context, Camera *camera, const char *key, const void *val) {
 	CameraWidget		*widget = NULL, *child = NULL;
 	CameraWidgetType	type;
 	int					ret;
