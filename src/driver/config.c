@@ -20,7 +20,7 @@ static int _lookup_widget(CameraWidget*widget, const char *key, CameraWidget **c
 }
 
 
-int get_config_type(Camera *camera, const char *key, GPContext *context) {
+int get_config_type(GPContext *context, Camera *camera, const char *key) {
  	CameraWidget		*widget = NULL, *child = NULL;
 	int					ret;
 	CameraWidgetType	type;
@@ -217,54 +217,36 @@ int get_config_value_string_choices(GPContext* context, Camera* camera, const ch
  * Sample (for Canons eg):
  *   get_config_value_string (camera, "owner", &ownerstr, context);
  */
-int set_config_value_string(Camera *camera, const char *key, const char *val, GPContext *context) {
+int set_config_value_string(GPContext *context, Camera *camera, const char *key, const char *val) {
 	CameraWidget		*widget = NULL, *child = NULL;
 	CameraWidgetType	type;
-	int			ret;
+	int					ret;
 
-	ret = gp_camera_get_config (camera, &widget, context);
+	ret = gp_camera_get_config(camera, &widget, context);
 	if (ret < GP_OK) {
-		fprintf (stderr, "camera_get_config failed: %d\n", ret);
+		printf("camera_get_config failed: %d\n", ret);
 		return ret;
 	}
-	ret = _lookup_widget (widget, key, &child);
+	ret = _lookup_widget(widget, key, &child);
 	if (ret < GP_OK) {
-		fprintf (stderr, "lookup widget failed: %d\n", ret);
-		goto out;
-	}
-
-	/* This type check is optional, if you know what type the label
-	 * has already. If you are not sure, better check. */
-	ret = gp_widget_get_type (child, &type);
-	if (ret < GP_OK) {
-		fprintf (stderr, "widget get type failed: %d\n", ret);
-		goto out;
-	}
-	switch (type) {
-        case GP_WIDGET_MENU:
-        case GP_WIDGET_RADIO:
-        case GP_WIDGET_TEXT:
-		break;
-	default:
-		fprintf (stderr, "widget has bad type %d\n", type);
-		ret = GP_ERROR_BAD_PARAMETERS;
+		printf("lookup widget failed: %d\n", ret);
 		goto out;
 	}
 
 	/* This is the actual set call. Note that we keep
 	 * ownership of the string and have to free it if necessary.
 	 */
-	ret = gp_widget_set_value (child, val);
+	ret = gp_widget_set_value(child, val);
 	if (ret < GP_OK) {
-		fprintf (stderr, "could not set widget value: %d\n", ret);
+		printf("could not set widget value: %d\n", ret);
 		goto out;
 	}
-	ret = gp_camera_set_single_config (camera, key, child, context);
+	ret = gp_camera_set_single_config(camera, key, child, context);
 	if (ret != GP_OK) {
 		/* This stores it on the camera again */
-		ret = gp_camera_set_config (camera, widget, context);
+		ret = gp_camera_set_config(camera, widget, context);
 		if (ret < GP_OK) {
-			fprintf (stderr, "camera_set_config failed: %d\n", ret);
+			printf("camera_set_config failed: %d\n", ret);
 			return ret;
 		}
 	}

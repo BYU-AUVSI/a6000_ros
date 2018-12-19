@@ -6,10 +6,6 @@ project(a6000_ros_driver)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMakeModules)
 
-# IF(APPLE)
-#     set(BREW_INCLUDE_DIR /usr/local/include)
-# ENDIF(APPLE)
-
 find_package(Gphoto2 REQUIRED)
 
 file(GLOB src_dir

@@ -56,7 +56,7 @@ bool CameraConnector::getConfigOptions(const ConfigSetting* setting, vector<stri
             return true;
         } else {
             // get our config type, also make sure the setting currently exists on our camera
-            int type = get_config_type(camera, setting->settingLabel, context);
+            int type = get_config_type(context, camera, setting->settingLabel);
             if (type < GP_OK) {
                 printf("Something went wrong while trying to get config type for (%s) - %d\n", setting->settingLabel, type);
                 return false;
@@ -102,7 +102,7 @@ bool CameraConnector::getConfigStringValue(const ConfigSetting* setting, char* v
 
         // Get the type of config option that's hoping to be retrieved.
         // If the config option doesnt exist, this method will let us know
-        int type = get_config_type(camera, setting->settingLabel, context);
+        int type = get_config_type(context, camera, setting->settingLabel);
         if (type < GP_OK) {
             printf("Something went wrong while trying to get config type for (%s) - %d\n", setting->settingLabel, type);
             return false;
@@ -141,16 +141,22 @@ bool CameraConnector::getConfigStringValue(const ConfigSetting* setting, char* v
 bool CameraConnector::setConfigValue(const ConfigSetting* setting, std::string value) {
     vector<string> configOpts(MAX_CONFIG_VALUE_COUNT);
     int numConfigValues;
+    int ret;
 
     if (connected) {
         
-        // Get possible values for this setting to make sure input is good
+        // Get possible values for this setting to make sure input is valid
         if (getConfigOptions(setting, &configOpts, &numConfigValues)) {
             if (std::find(configOpts.begin(), configOpts.end(), value) != configOpts.end()) {
+                // properly handle setting based on the config setting type
                 printf("the value existssssss\n");
+                ret = set_config_value_string(context, camera, setting->settingLabel, value.c_str());
+                if (ret >= GP_OK) {
+                    printf("Successfully updated %s!\n", setting->name);
+                    return true;
+                }
             } else {
                 printf("ERR:: Trying to change %s to a non-permissible value (%s). To get a list of permissible values, call getConfigInfo\n", setting->name, value.c_str());
-                // (*resultDescription) = "Proposed value for setting is not allowed. To get a list of possible values, call /config_get_opts";
             }
         }
 

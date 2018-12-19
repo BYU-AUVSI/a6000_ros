@@ -14,8 +14,11 @@ int main(int argc, char const *argv[]) {
 
     cout << camLink.getConfigInfo(&A6000Config::SHUTTER_SPEED);
 
-    camLink.setConfigValue(&A6000Config::SHUTTER_SPEED, "1/40000");
-    camLink.setConfigValue(&A6000Config::IMAGE_QUALITY, "RAW");
+    usleep(3000000);
+    printf("WE GONNA DO ITTTTT\n\n");
+
+    camLink.setConfigValue(&A6000Config::SHUTTER_SPEED, "1/4000");
+    camLink.setConfigValue(&A6000Config::IMAGE_QUALITY, "RAWWWR");
 
     // capture multiple images (working)
     // char* imgData;
