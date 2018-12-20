@@ -1,6 +1,4 @@
 
-#define MAX_POSSIBLE_SETTING_VALUES 55
-
 typedef struct ConfigSetting {
     const char*  name;  // nice name we give a setting for outside access
     const char*  settingLabel; // setting label in the driver
@@ -8,6 +6,7 @@ typedef struct ConfigSetting {
     const char** possibleValues; // all possible values, if they needed to be manually specified
     const int numPossibleValues;
 } ConfigSetting;
+
 
 class A6000Config {
 public:
@@ -27,14 +26,6 @@ public:
     static const ConfigSetting SHUTTER_SPEED;
     static const ConfigSetting EXPOSURE_METER_MODE;
 };
-
-
-// const char* const* getAll() {
-//     const char* const all[] = {IMAGE_SIZE, ISO, COLOR_TEMP, WHITE_BALANCE, 
-//             EXPOSURE_COMP, FLASH_MODE, F_STOP, IMAGE_QUALITY, FOCUS_MODE, 
-//             EXP_PROGRAM, ASPECT_RATIO, CAPTURE_MODE, SHUTTER_SPEED, EXPOSURE_METER_MODE};
-//     return all;
-// }
 
 // This is the relevant info that `gphoto2 --list-config` returns
 // for the driver, you only need the last setting name ie: 'shutterspeed'

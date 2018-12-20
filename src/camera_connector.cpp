@@ -5,6 +5,10 @@ CameraConnector::CameraConnector() {
     printf("Startup Camera Connector\n");
 }
 
+CameraConnector::CameraConnector(bool autoReconnect) {
+    _autoReconnect = autoReconnect;
+}
+
 CameraConnector::~CameraConnector() {
     close();
 }
@@ -15,6 +19,7 @@ void CameraConnector::close() {
         gp_camera_exit(camera, context);
         gp_camera_free(camera);
 	    gp_context_unref(context);
+        _connected = false;
     }
 }
 
@@ -46,7 +51,7 @@ bool CameraConnector::getConfigOptions(const ConfigSetting* setting, vector<stri
     char* test[MAX_CONFIG_VALUE_COUNT];
     int ret;
 
-    if (connected) {
+    if (_connected) {
 
         if (setting->hasPossibleValues) {
             for (int i = 0; i < setting->numPossibleValues; i++) {
@@ -98,7 +103,7 @@ bool CameraConnector::getConfigStringValue(const ConfigSetting* setting, char* v
     int    ret;
     float  rangeValue;
     
-    if (connected) {
+    if (_connected) {
 
         // Get the type of config option that's hoping to be retrieved.
         // If the config option doesnt exist, this method will let us know
@@ -144,7 +149,7 @@ bool CameraConnector::setConfigValue(const ConfigSetting* setting, std::string v
     int ret;
     float fValue;
 
-    if (connected) {
+    if (_connected) {
         
         // Get possible values for this setting to make sure input is valid
         if (getConfigOptions(setting, &configOpts, &numConfigValues)) {
@@ -190,11 +195,43 @@ bool CameraConnector::setConfigValue(const ConfigSetting* setting, std::string v
 }
 
 bool CameraConnector::captureImage(const char** image_data, unsigned long* size) {
-    if (connected) {    
-        int	retval = capture_to_memory(camera, context, image_data, size);
+    if (_connected) {    
 
-        if (retval < GP_OK) {
-            printf("Capture failed (%d), aborting...", retval);
+        // we call this method in a seperate thread, so that we can timeout if it takes too long
+        // prepare yourself for some funky c++ threading code:
+        std::mutex mu;
+        std::condition_variable completeMonitor;
+        int retVal;
+
+        // setup the thread as a lambda function
+        std::thread captureThread([this, &completeMonitor, &retVal, image_data, size]() {
+            try {
+                retVal = capture_to_memory(camera, context, image_data, size);
+                printf("endme\n");
+            } catch (std::exception& e) {
+                printf("catch!\n");
+                retVal = -99;
+            }
+            completeMonitor.notify_one();
+        });
+
+        captureThread.detach();
+        {
+            std::unique_lock<std::mutex> muLock(mu);
+            if (completeMonitor.wait_for(muLock, std::chrono::seconds(3)) == std::cv_status::timeout) {  //time out after 2seconds (2s)
+                // throw std::runtime_error("Timeout");
+                printf("Timeout while attempting to capture image\n");
+                retVal = -99;
+                usleep(3000000);
+                printf("wakey\n");
+                close();
+                printf("closed\n");
+                blockingConnect();
+            }
+        }
+
+        if (retVal < GP_OK) {
+            printf("Capture failed (%d), aborting...", retVal);
             return false;
         }
     } else {
@@ -225,24 +262,29 @@ bool CameraConnector::writeImageToFile(const char* file_name, const char* image_
     return false; // we only get here if something failed
 }
 
+void CameraConnector::wrapperTest() {
+    if (_connected) {
+        async_capture_to_memory(context, camera);
+    }
+}
+
 bool CameraConnector::blockingConnect() {
-    if (connected) {
+    if (_connected) {
         close(); // close out current context in event we're already connected
     }
-    connected = false;
+    _connected = false;
     
     CameraList *list;
-    int ret = gp_list_new (&list);
+    int ret = gp_list_new(&list);
 
-
-     context = create_context();
+    context = create_context();
  
     if (ret < GP_OK) {
         printf("Gphoto's gave us this error trying to create a context:: %d\n", ret);
-        return connected;
+        return _connected;
     }
 
-    while (!connected) {
+    while (!_connected) {
         int cameraCount = autodetect(list, context);
         
         if (cameraCount < GP_OK || cameraCount == 0) {
@@ -259,7 +301,7 @@ bool CameraConnector::blockingConnect() {
             int initRet = gp_camera_init(camera, context);
             if (initRet < GP_OK) {
                 printf("Failed to initialize camera! Error code: %d\n", initRet);
-                gp_camera_free(camera); //free camera resources again
+                close();
                 // wait between connection attempts. even if the camera is connected
                 // it can take a little bit to initialize, and we dont wanna spit out
                 // a whole ton of errors in that time
@@ -272,7 +314,7 @@ bool CameraConnector::blockingConnect() {
             initRet = gp_camera_get_summary(camera, &text, context);
             if (ret < GP_OK) {
                 printf("Failed to retrieve basic summary of camera: %d\n", initRet);
-                gp_camera_free(camera);
+                close();
                 usleep(3000000);
                 continue;
             }
@@ -288,9 +330,10 @@ bool CameraConnector::blockingConnect() {
             }
 
             printf("Connection Successful!\n");
-            connected = true;
+            _connected = true;
         }
 
     }
+    return _connected;
 
 }

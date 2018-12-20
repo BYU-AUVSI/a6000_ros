@@ -8,7 +8,10 @@ extern "C" {
 
 int autodetect(CameraList *list, GPContext *context);
 GPContext* create_context(void);
+
+// capture functions:
 int capture_to_memory(Camera *camera, GPContext *context, const char **ptr, unsigned long int *size);
+int async_capture_to_memory(GPContext *context, Camera *camera);
 
 //config gettter functions:
 float get_config_value_float(GPContext *context, Camera *camera, const char *key);
@@ -19,6 +22,11 @@ int get_config_type(GPContext *context, Camera *camera, const char *key);
 
 //config setter functions:
 int set_config_value(GPContext *context, Camera *camera, const char *key, const void *val);
+
+#if !defined (O_BINARY)
+	/*To have portable binary open() on *nix and on Windows */
+	#define O_BINARY 0
+#endif
 
 #ifdef __cplusplus
 }
