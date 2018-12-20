@@ -11,7 +11,7 @@ GPContext* create_context(void);
 
 // capture functions:
 int capture_to_memory(Camera *camera, GPContext *context, const char **ptr, unsigned long int *size);
-int async_capture_to_memory(GPContext *context, Camera *camera);
+int async_capture_to_memory(GPContext *context, Camera *camera, const char** data, unsigned long int *size);
 
 //config gettter functions:
 float get_config_value_float(GPContext *context, Camera *camera, const char *key);

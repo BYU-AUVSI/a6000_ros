@@ -19,6 +19,8 @@ void CameraConnector::close() {
         gp_camera_exit(camera, context);
         gp_camera_free(camera);
 	    gp_context_unref(context);
+        context = nullptr;
+        camera = nullptr;
         _connected = false;
     }
 }
@@ -201,17 +203,13 @@ bool CameraConnector::captureImage(const char** image_data, unsigned long* size)
         // prepare yourself for some funky c++ threading code:
         std::mutex mu;
         std::condition_variable completeMonitor;
+        const std::string threadName = "cap_thread";
         int retVal;
 
         // setup the thread as a lambda function
         std::thread captureThread([this, &completeMonitor, &retVal, image_data, size]() {
-            try {
-                retVal = capture_to_memory(camera, context, image_data, size);
-                printf("endme\n");
-            } catch (std::exception& e) {
-                printf("catch!\n");
-                retVal = -99;
-            }
+            retVal = capture_to_memory(camera, context, image_data, size);
+            printf("endme\n");
             completeMonitor.notify_one();
         });
 
@@ -222,7 +220,6 @@ bool CameraConnector::captureImage(const char** image_data, unsigned long* size)
                 // throw std::runtime_error("Timeout");
                 printf("Timeout while attempting to capture image\n");
                 retVal = -99;
-                usleep(3000000);
                 printf("wakey\n");
                 close();
                 printf("closed\n");
@@ -262,9 +259,10 @@ bool CameraConnector::writeImageToFile(const char* file_name, const char* image_
     return false; // we only get here if something failed
 }
 
-void CameraConnector::wrapperTest() {
+void CameraConnector::wrapperTest(const char** data, unsigned long* size) {
     if (_connected) {
-        async_capture_to_memory(context, camera);
+        async_capture_to_memory(context, camera, data, size);
+        printf("DID ITTTTTT!!! Size:: %lu\n", *size);
     }
 }
 
