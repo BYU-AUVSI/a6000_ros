@@ -10,8 +10,11 @@ int autodetect(CameraList *list, GPContext *context);
 GPContext* create_context(void);
 
 // capture functions:
+// single capture attempt. can freeze up if autofocus fails to work quickly
 int capture_to_memory(Camera *camera, GPContext *context, const char **ptr, unsigned long int *size);
-int async_capture_to_memory(GPContext *context, Camera *camera, const char** data, unsigned long int *size);
+// more robust than capture_to_memory. Will continuously trigger a shot until the camera does a successful capture and
+// we pull it off the camera
+int trigger_capture_to_memory(GPContext *context, Camera *camera, const char** data, unsigned long int *size);
 
 //config gettter functions:
 float get_config_value_float(GPContext *context, Camera *camera, const char *key);

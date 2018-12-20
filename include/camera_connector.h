@@ -50,8 +50,6 @@ public:
      *            {PossibleValue1, PossibleValue2...}"
      */
     std::string getConfigInfo(const ConfigSetting* setting);
-
-    void wrapperTest(const char** data, unsigned long* size);
     
     /**
      * Get Config value of the given Setting as a String 

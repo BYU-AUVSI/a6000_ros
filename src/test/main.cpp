@@ -28,41 +28,24 @@ int main(int argc, char const *argv[]) {
     // // camLink.setConfigValue(&A6000Config::F_STOP, "6.3"); // this will work (the image is probably really dark now)
     // camLink.setConfigValue(&A6000Config::IMAGE_QUALITY, "RAWWWR"); // this should fail
 
-    // // capture multiple images 
-    // printf("\nCapture time!\n");
+    // capture multiple images 
+    printf("\nCapture time!\n");
     
-    // char* imgData;
-    // unsigned long imgSize;
-    // char name[20];
-
-    // for (int i = 0; i < 10; i++) {
-
-    //     if (camLink.captureImage((const char**)&imgData, &imgSize)) {
-
-    //         sprintf(name, "test-img-%d.jpg", i);
-    //         camLink.writeImageToFile(name, imgData, imgSize);
-    //     } else {
-    //         printf("Failed to capture image %d\n", i);
-    //     }
-        
-    // }
-
     char* imgData;
-    char name[20];
     unsigned long imgSize;
+    char name[20];
 
-    camLink.wrapperTest((const char**)&imgData, &imgSize);
-    sprintf(name, "test-img-%d.jpg", 1);
-    camLink.writeImageToFile(name, imgData, imgSize);
-    usleep(3000000);
-    camLink.wrapperTest((const char**)&imgData, &imgSize);
-    sprintf(name, "test-img-%d.jpg", 2);
-    camLink.writeImageToFile(name, imgData, imgSize);
-    usleep(3000000);
-    camLink.wrapperTest((const char**)&imgData, &imgSize);
-    sprintf(name, "test-img-%d.jpg", 3);
-    camLink.writeImageToFile(name, imgData, imgSize);
+    for (int i = 0; i < 10; i++) {
 
+        if (camLink.captureImage((const char**)&imgData, &imgSize)) {
+
+            sprintf(name, "test-img-%d.jpg", i);
+            camLink.writeImageToFile(name, imgData, imgSize);
+        } else {
+            printf("Failed to capture image %d\n", i);
+        }
+        
+    }
 
     printf("Did it work??\n");
     return 0;

@@ -13,7 +13,6 @@ CameraConnector::~CameraConnector() {
     close();
 }
 
-
 void CameraConnector::close() {
     if (context != nullptr && camera != nullptr) {
         gp_camera_exit(camera, context);
@@ -199,36 +198,14 @@ bool CameraConnector::setConfigValue(const ConfigSetting* setting, std::string v
 bool CameraConnector::captureImage(const char** image_data, unsigned long* size) {
     if (_connected) {    
 
-        // we call this method in a seperate thread, so that we can timeout if it takes too long
-        // prepare yourself for some funky c++ threading code:
-        std::mutex mu;
-        std::condition_variable completeMonitor;
-        const std::string threadName = "cap_thread";
-        int retVal;
-
-        // setup the thread as a lambda function
-        std::thread captureThread([this, &completeMonitor, &retVal, image_data, size]() {
-            retVal = capture_to_memory(camera, context, image_data, size);
-            printf("endme\n");
-            completeMonitor.notify_one();
-        });
-
-        captureThread.detach();
-        {
-            std::unique_lock<std::mutex> muLock(mu);
-            if (completeMonitor.wait_for(muLock, std::chrono::seconds(3)) == std::cv_status::timeout) {  //time out after 2seconds (2s)
-                // throw std::runtime_error("Timeout");
-                printf("Timeout while attempting to capture image\n");
-                retVal = -99;
-                printf("wakey\n");
-                close();
-                printf("closed\n");
-                blockingConnect();
-            }
-        }
+        // trigger_capture will continue to send trigger to the camera until we're able to successfully
+        // get something off of it and into program memory. Note: this can occasionally have the side
+        // effect of sending images that got stuck in the camera's buffer previously. Afaik though, images
+        // always come off the camera in chronological order, so this is a non-issue in most situations
+        int retVal = trigger_capture_to_memory(context, camera, image_data, size);
 
         if (retVal < GP_OK) {
-            printf("Capture failed (%d), aborting...", retVal);
+            printf("Capture failed (%d), aborting...\n", retVal);
             return false;
         }
     } else {
@@ -257,13 +234,6 @@ bool CameraConnector::writeImageToFile(const char* file_name, const char* image_
         }
     }
     return false; // we only get here if something failed
-}
-
-void CameraConnector::wrapperTest(const char** data, unsigned long* size) {
-    if (_connected) {
-        async_capture_to_memory(context, camera, data, size);
-        printf("DID ITTTTTT!!! Size:: %lu\n", *size);
-    }
 }
 
 bool CameraConnector::blockingConnect() {

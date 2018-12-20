@@ -1,11 +1,9 @@
 #include "gphoto_drv.h"
-#include <stdlib.h>
+#include <stdlib.h> 
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/stat.h>
-#include <fcntl.h>
 #include <stdio.h>
-#include <stdarg.h>
 #include <string.h>
 #include <gphoto2/gphoto2.h>
 
@@ -14,7 +12,6 @@ static struct queue_entry {
 	int offset;
 } *queue = NULL;
 static int numFileInQueue = 0;
-static int nrdownloads=0;
 
 static int captured;
 
@@ -28,7 +25,7 @@ static int wait_event_and_download(GPContext *context, Camera *camera, int waitt
 	int				retval;
     struct timeval	start, curtime;
 
-    gettimeofday (&start, NULL);
+    gettimeofday(&start, NULL);
 	data = NULL;
 	if (numFileInQueue)
 		waittime = 10; /* just drain the event queue */
@@ -36,7 +33,7 @@ static int wait_event_and_download(GPContext *context, Camera *camera, int waitt
 	while (1) {
 		unsigned int timediff;
 
-        gettimeofday (&curtime, NULL);
+        gettimeofday(&curtime, NULL);
 
 		timediff = ((curtime.tv_sec - start.tv_sec)*1000)+((curtime.tv_usec - start.tv_usec)/1000);
 		if (timediff >= waittime) 
@@ -64,7 +61,7 @@ static int wait_event_and_download(GPContext *context, Camera *camera, int waitt
                 free(data);
                 break;
             case GP_EVENT_FILE_ADDED:
-                printf("File %s / %s added to queue.\n", path->folder, path->name);
+                printf("   File added to queue\n");
                 if (numFileInQueue) {
                     struct queue_entry *q;
                     q = realloc(queue, sizeof(struct queue_entry)*(numFileInQueue+1));
@@ -88,15 +85,12 @@ static int wait_event_and_download(GPContext *context, Camera *camera, int waitt
 
 		retval = gp_file_new(&file);
 
-		printf("camera getfile of %s / %s\n",
-			queue[0].path.folder,
-			queue[0].path.name
-		);
+		printf("   camera getfile of %s\n", queue[0].path.name);
 		retval = gp_camera_file_get(camera, queue[0].path.folder, queue[0].path.name,
 			GP_FILE_TYPE_NORMAL, file, context);
 		
 		if (retval != GP_OK) {
-			printf ("gp_camera_file_get failed: %d\n", retval);
+			printf ("   gp_camera_file_get failed: %d\n", retval);
 			gp_file_free(file);
 			return retval;
 		}
@@ -105,27 +99,11 @@ static int wait_event_and_download(GPContext *context, Camera *camera, int waitt
 		retval = gp_file_get_data_and_size(file, buffer, size);
 
 		if (retval != GP_OK) {
-			printf("gp_file_get_data_and_size failed: %d\n", retval);
+			printf("   gp_file_get_data_and_size failed: %d\n", retval);
 			gp_file_free (file);
 			return retval;
 		}
-		// if (-1 == stat(queue[0].path.name, &stbuf))
-		// 	fd = creat(queue[0].path.name, 0644);
-		// else
-		// 	fd = open(queue[0].path.name, O_RDWR | O_BINARY, 0644);
-		// if (fd == -1) {
-		// 	perror(queue[0].path.name);
-		// 	return GP_ERROR;
-		// }
-		// if (-1 == lseek(fd, 0, SEEK_SET))
-		// 	perror("lseek");
-		// if (-1 == write (fd, buffer, size)) 
-		// 	perror("write");
-		// close (fd);
 
-		// gp_file_free (file); /* Note: this invalidates buffer. */
-
-		printf("ending download %d, deleting file.\n", nrdownloads);
 		retval = gp_camera_file_delete(camera, queue[0].path.folder, queue[0].path.name, context);
 		memmove(&queue[0],&queue[1],sizeof(queue[0])*(numFileInQueue-1));
 		numFileInQueue--;
@@ -134,30 +112,24 @@ static int wait_event_and_download(GPContext *context, Camera *camera, int waitt
 	return GP_OK;
 }
 
-int async_capture_to_memory(GPContext *context, Camera *camera, const char** data, unsigned long* size) {
-	int		retval, nrcapture = 0;
-	struct timeval	tval;
+int trigger_capture_to_memory(GPContext *context, Camera *camera, const char** data, unsigned long* size) {
+	int		retval;
 	captured = 0;
 
 	while (!captured) {
 		if ((time(NULL) & 1) == 1)  {
-			printf("triggering capture %d\n", ++nrcapture);
+			printf("   triggering capture\n");
 			retval = gp_camera_trigger_capture(camera, context);
 			if ((retval != GP_OK) && (retval != GP_ERROR) && (retval != GP_ERROR_CAMERA_BUSY)) {
-				printf("triggering capture had error %d\n", retval);
+				printf("   triggering capture had error %d\n", retval);
 				break;
 			}
-			printf ( "done triggering\n");
 		}
 		retval = wait_event_and_download(context, camera, 100, data, size);
 		if (retval != GP_OK)
 			break;
 
-		gettimeofday (&tval, NULL);
-		printf("loop is at %d.%06d\n", (int)tval.tv_sec,(int)tval.tv_usec);
 	}
 
-	printf("DID ITTTTTT!!! Size:: %lu\n", *size);
-
-	return 0;
+	return retval;
 }
