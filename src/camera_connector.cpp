@@ -6,7 +6,7 @@ CameraConnector::CameraConnector() {
 }
 
 CameraConnector::CameraConnector(bool autoReconnect) {
-    _autoReconnect = autoReconnect;
+    autoReconnect_ = autoReconnect;
 }
 
 CameraConnector::~CameraConnector() {
@@ -20,7 +20,7 @@ void CameraConnector::close() {
 	    gp_context_unref(context);
         context = nullptr;
         camera = nullptr;
-        _connected = false;
+        connected_ = false;
     }
 }
 
@@ -52,7 +52,7 @@ bool CameraConnector::getConfigOptions(const ConfigSetting* setting, vector<stri
     char* test[MAX_CONFIG_VALUE_COUNT];
     int ret;
 
-    if (_connected) {
+    if (connected_) {
 
         if (setting->hasPossibleValues) {
             for (int i = 0; i < setting->numPossibleValues; i++) {
@@ -104,7 +104,7 @@ bool CameraConnector::getConfigStringValue(const ConfigSetting* setting, char* v
     int    ret;
     float  rangeValue;
     
-    if (_connected) {
+    if (connected_) {
 
         // Get the type of config option that's hoping to be retrieved.
         // If the config option doesnt exist, this method will let us know
@@ -150,7 +150,7 @@ bool CameraConnector::setConfigValue(const ConfigSetting* setting, std::string v
     int ret;
     float fValue;
 
-    if (_connected) {
+    if (connected_) {
         
         // Get possible values for this setting to make sure input is valid
         if (getConfigOptions(setting, &configOpts, &numConfigValues)) {
@@ -196,7 +196,7 @@ bool CameraConnector::setConfigValue(const ConfigSetting* setting, std::string v
 }
 
 bool CameraConnector::captureImage(const char** image_data, unsigned long* size) {
-    if (_connected) {    
+    if (connected_) {
 
         // trigger_capture will continue to send trigger to the camera until we're able to successfully
         // get something off of it and into program memory. Note: this can occasionally have the side
@@ -237,10 +237,10 @@ bool CameraConnector::writeImageToFile(const char* file_name, const char* image_
 }
 
 bool CameraConnector::blockingConnect() {
-    if (_connected) {
+    if (connected_) {
         close(); // close out current context in event we're already connected
     }
-    _connected = false;
+    connected_ = false;
     
     CameraList *list;
     int ret = gp_list_new(&list);
@@ -249,10 +249,10 @@ bool CameraConnector::blockingConnect() {
  
     if (ret < GP_OK) {
         printf("Gphoto's gave us this error trying to create a context:: %d\n", ret);
-        return _connected;
+        return connected_;
     }
 
-    while (!_connected) {
+    while (!connected_) {
         int cameraCount = autodetect(list, context);
         
         if (cameraCount < GP_OK || cameraCount == 0) {
@@ -298,10 +298,10 @@ bool CameraConnector::blockingConnect() {
             }
 
             printf("Connection Successful!\n");
-            _connected = true;
+            connected_ = true;
         }
 
     }
-    return _connected;
+    return connected_;
 
 }

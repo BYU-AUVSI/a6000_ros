@@ -1,6 +1,6 @@
 # Sony a6000 ROS
 
-This package exposes a Sony a6000 to a ROS network by using [GPhoto2](https://github.com/gphoto/). While this driver was primarily built for the a6000, it should easily extend to other cameras. The ROS node itself is added as a wrapper class to the core driver, meaning that it should be easy to continue using the base driver code without ROS if needed.
+This package exposes a Sony a6000 to a ROS network by using [GPhoto2](https://github.com/gphoto/). While this driver was primarily built for the a6000, it should easily extend to other cameras. The ROS node itself is added as a wrapper class to the core driver, meaning that its also possible to continue using the base driver code without ROS if needed.
 
 ## Dependencies
 
@@ -29,4 +29,4 @@ You can control certain camera settings through the following ros services:
 
 First, check if the desired camera is on [gphoto2's list of supported cameras](http://gphoto.org/proj/libgphoto2/support.php).
 
-You'll would need to provide configuration setting details in `camera_config_defs.h` and `camera_config_defs.cpp`. Also note compared to other supported cameras, the a6000's capabilities over gphoto2 are fairly basic. Meaning, that for better supported cameras, there may be better ways of interacting with them, than how this driver does.
+You'll would need to provide configuration setting details in `camera_config_defs.h` and `camera_config_defs.cpp`. Also note compared to other supported cameras, the a6000's capabilities using gphoto2 are fairly basic. Meaning, that for better supported cameras, there may be better ways of interacting with them than how this driver does.

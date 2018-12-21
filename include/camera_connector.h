@@ -78,8 +78,8 @@ public:
 private:
     GPContext* context = nullptr;
     Camera *camera = nullptr;
-    bool _connected;
-    bool _autoReconnect = true;
+    bool connected_;
+    bool autoReconnect_ = true;
 };
 
 

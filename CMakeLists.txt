@@ -12,11 +12,13 @@ find_package(Gphoto2 REQUIRED) # camera driver base
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   image_transport
+  cv_bridge
+  sensor_msgs
 )
 
 catkin_package(
     INCLUDE_DIRS include
-    CATKIN_DEPENDS roscpp image_transport
+    CATKIN_DEPENDS roscpp image_transport sensor_msgs cv_bridge
 )
 
 
