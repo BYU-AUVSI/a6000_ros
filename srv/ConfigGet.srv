@@ -1,0 +1,6 @@
+# Get a camera configuration option and its current value
+
+string configName # name of the configuration setting to retrieve
+---
+bool exists
+string value # the current value

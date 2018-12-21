@@ -14,13 +14,20 @@ find_package(catkin REQUIRED COMPONENTS
   image_transport
   cv_bridge
   sensor_msgs
+  std_srvs
+  message_generation
 )
+
+# add_service_files(DIRECTORY srv FILES
+#     ConfigList.srv
+# )
+
+# generate_messages()
 
 catkin_package(
     INCLUDE_DIRS include
-    CATKIN_DEPENDS roscpp image_transport sensor_msgs cv_bridge
+    CATKIN_DEPENDS roscpp image_transport sensor_msgs cv_bridge message_runtime
 )
-
 
 file(GLOB src_dir
     "src/driver/*.c"
