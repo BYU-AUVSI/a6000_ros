@@ -2,6 +2,8 @@
 
 This package exposes a Sony a6000 to a ROS network by using [GPhoto2](https://github.com/gphoto/). While this driver was primarily built for the a6000, it should easily extend to other cameras. The ROS node itself is added as a wrapper class to the core driver, meaning that its also possible to continue using the base driver code without ROS if needed.
 
+The [image_transport](https://wiki.ros.org/image_transport) package is used to publish images onto the ROS network. Note that the base /img topic will reflect whatever quality is set on the camera. ie: if the camera settings are configured to capture 16MP jpg images, these are what will be published on the /img topic, while the /img/compressed topic will be that jpg image, pushed again through image_transport's compressor.
+
 ## Dependencies
 
 This package requires a number of dependencies that are not installed in a default ROS linux environment. The main dependency is:
@@ -61,6 +63,8 @@ possibleValues: "{3.5, 4.0, 4.5, 5.0, 5.6, 6.3, 7.1, 8.0, 9.0, 10.0, 11.0, 13.0,
 ```
 
 ## Extending to other cameras
+
+If you're super cool and want to extend this code to work with other cameras, do it!
 
 First, check if the desired camera is on [gphoto2's list of supported cameras](http://gphoto.org/proj/libgphoto2/support.php).
 

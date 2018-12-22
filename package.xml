@@ -11,9 +11,9 @@
 
   <depend>roscpp</depend>
   <depend>image_transport</depend>
-  <depend>sensor_msgs</depend>
   <depend>cv_bridge</depend>
+  <depend>sensor_msgs</depend>
+  <depend>std_srvs</depend>
   <depend>message_generation</depend>
-  <depend>message_runtime</depend>
 
 </package>
