@@ -1,3 +1,5 @@
+#pragma once
+#include <vector>
 
 typedef struct ConfigSetting {
     const char*  name;  // nice name we give a setting for outside access
@@ -25,6 +27,8 @@ public:
     static const ConfigSetting CAPTURE_MODE;
     static const ConfigSetting SHUTTER_SPEED;
     static const ConfigSetting EXPOSURE_METER_MODE;
+
+    static const std::vector<ConfigSetting> ALL;
 };
 
 // This is the relevant info that `gphoto2 --list-config` returns

@@ -21,3 +21,8 @@ const ConfigSetting A6000Config::ASPECT_RATIO    = {"ASPECT_RATIO", "aspectratio
 const ConfigSetting A6000Config::CAPTURE_MODE    = {"CAPTURE_MODE", "capturemode", false, nullptr, 0};
 const ConfigSetting A6000Config::SHUTTER_SPEED   = {"SHUTTER_SPEED", "shutterspeed", true, shutterSpeeds, 53};
 const ConfigSetting A6000Config::EXPOSURE_METER_MODE = {"EXPOSURE_METER_MODE", "exposuremetermode", false, nullptr, 0};
+const std::vector<ConfigSetting> A6000Config::ALL {A6000Config::IMAGE_SIZE, A6000Config::ISO, A6000Config::WHITE_BALANCE, 
+                                            A6000Config::EXPOSURE_COMP, A6000Config::FLASH_MODE,
+                                            A6000Config::F_STOP, A6000Config::IMAGE_QUALITY, A6000Config::FOCUS_MODE, 
+                                            A6000Config::EXP_PROGRAM, A6000Config::ASPECT_RATIO, A6000Config::CAPTURE_MODE, 
+                                            A6000Config::SHUTTER_SPEED, A6000Config::EXPOSURE_METER_MODE};

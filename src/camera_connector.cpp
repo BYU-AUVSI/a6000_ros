@@ -24,15 +24,27 @@ void CameraConnector::close() {
     }
 }
 
+bool CameraConnector::isConnected() {
+    return connected_;
+}
+
+std::string CameraConnector::getAllConfigInfo(const vector<ConfigSetting> settings) {
+    std::string ret = "";
+    for (int i = 0; i < settings.size(); i++) {
+        ret += getConfigInfo((const ConfigSetting*) &settings.at(i)) + "\n";
+    }
+    return ret;
+}
+
 std::string CameraConnector::getConfigInfo(const ConfigSetting* setting) {
     char currentValue[50];
     std::string ret = setting->name;
-    ret += '\n';
+    ret += "\n";
 
     if (getConfigStringValue(setting, (char*) currentValue)) {
         ret += "Current Setting: ";
         ret += currentValue;
-        ret += '\n';
+        ret += "\n";
     }
 
     vector<string> configOpts(MAX_CONFIG_VALUE_COUNT);

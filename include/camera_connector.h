@@ -33,6 +33,8 @@ public:
 
     bool blockingConnect();
 
+    bool isConnected();
+
     bool captureImage(const char** image_data, unsigned long* size);
     bool writeImageToFile(const char* file_name, const char* image_data, unsigned long size);
 
@@ -50,6 +52,15 @@ public:
      *            {PossibleValue1, PossibleValue2...}"
      */
     std::string getConfigInfo(const ConfigSetting* setting);
+
+    /**
+     * 
+     * Given an array of configuration settings, call #getConfigInfo on
+     * all of them and and combine the resulting strings into a single string
+     * 
+     * @returns string with all config info for the settings in the provided array
+     */
+    std::string getAllConfigInfo(const vector<ConfigSetting> settings);
     
     /**
      * Get Config value of the given Setting as a String 

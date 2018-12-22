@@ -53,8 +53,35 @@ void GphotoCameraROS::run() {
 
 
 bool GphotoCameraROS::configListServiceCallback(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res) {
-    cout << "were innnn" << endl;
-    ROS_INFO("were in ros edition");
-    res.message = "hey whats up helooooooooo";
+    if (!cam_.isConnected()) {
+        res.success = false;
+        res.message = "Camera is not currently connected!";
+    } else {
+        std::string msg = "";
+        try {
+            msg = cam_.getAllConfigInfo(A6000Config::ALL);
+            if (msg.empty()) {
+                // For some reason an empty string was returned without
+                // any type of exception. This could happen if the input vector to the
+                // above function was empty, but I'm not sure why else it would happen
+                res.success = false;
+                res.message = "Got nothing when attempting to get configuration info";
+            } else {
+                // Success!
+                res.success = true;
+                res.message = msg;
+            }
+        } catch (std::exception &e) {
+            // Who knows what happened, but something failed
+            ROS_WARN("Something went wrong while trying to get config info:: %s", e.what());
+            res.success = false;
+            res.message = e.what();
+        }
+        
+    }
+    return true;
+}
+
+bool GphotoCameraROS::configGetServiceCallback(a6000_ros::ConfigGet::Request &req, a6000_ros::ConfigGet::Response &res) {
     return true;
 }
