@@ -60,7 +60,7 @@ public:
      * 
      * @returns string with all config info for the settings in the provided array
      */
-    std::string getAllConfigInfo(const vector<ConfigSetting> settings);
+    std::string getAllConfigBasicInfo(const vector<ConfigSetting> settings);
     
     std::string getConfigOptionsString(const ConfigSetting* setting);
     /**

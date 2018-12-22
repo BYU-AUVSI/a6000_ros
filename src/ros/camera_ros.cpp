@@ -61,7 +61,7 @@ bool GphotoCameraROS::configListServiceCallback(std_srvs::Trigger::Request &req,
     } else {
         std::string msg = "";
         try {
-            msg = cam_.getAllConfigInfo(A6000Config::ALL);
+            msg = cam_.getAllConfigBasicInfo(A6000Config::ALL);
             if (msg.empty()) {
                 // For some reason an empty string was returned without
                 // any type of exception. This could happen if the input vector to the

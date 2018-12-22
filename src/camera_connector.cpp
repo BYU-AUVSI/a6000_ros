@@ -28,10 +28,16 @@ bool CameraConnector::isConnected() {
     return connected_;
 }
 
-std::string CameraConnector::getAllConfigInfo(const vector<ConfigSetting> settings) {
+std::string CameraConnector::getAllConfigBasicInfo(const vector<ConfigSetting> settings) {
     std::string ret = "";
+    char currentValue[50];
     for (int i = 0; i < settings.size(); i++) {
-        ret += getConfigInfo((const ConfigSetting*) &settings.at(i)) + "\n";
+        ret += settings.at(i).name;
+        ret += " = ";
+        if (getConfigStringValue((const ConfigSetting*) &settings.at(i), (char*) currentValue)) {
+            ret += currentValue;
+        }
+        ret += ", ";
     }
     return ret;
 }
