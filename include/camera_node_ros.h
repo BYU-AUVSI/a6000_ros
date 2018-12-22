@@ -27,6 +27,7 @@ private:
     bool configGetServiceCallback(a6000_ros::ConfigGet::Request &req, a6000_ros::ConfigGet::Response &res);
 
     ros::ServiceServer config_list_srv_;
+    ros::ServiceServer config_get_srv_;
 
     CameraConnector cam_;
     ros::NodeHandle nh_private_;

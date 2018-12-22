@@ -26,3 +26,13 @@ const std::vector<ConfigSetting> A6000Config::ALL {A6000Config::IMAGE_SIZE, A600
                                             A6000Config::F_STOP, A6000Config::IMAGE_QUALITY, A6000Config::FOCUS_MODE, 
                                             A6000Config::EXP_PROGRAM, A6000Config::ASPECT_RATIO, A6000Config::CAPTURE_MODE, 
                                             A6000Config::SHUTTER_SPEED, A6000Config::EXPOSURE_METER_MODE};
+
+
+const ConfigSetting* A6000Config::getConfigSetting(const char* settingName) {
+    for (int i = 0; i < ALL.size(); i++) {
+        if (strcmp(settingName, ALL.at(i).name) == 0) {
+            return &ALL.at(i);
+        }
+    }
+    return nullptr;
+}

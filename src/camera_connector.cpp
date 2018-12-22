@@ -47,7 +47,13 @@ std::string CameraConnector::getConfigInfo(const ConfigSetting* setting) {
         ret += "\n";
     }
 
-    vector<string> configOpts(MAX_CONFIG_VALUE_COUNT);
+    ret += getConfigOptionsString(setting);
+    return ret;
+}
+
+std::string CameraConnector::getConfigOptionsString(const ConfigSetting* setting) {
+    std::string ret = "";
+    vector<string> configOpts;
     int numValues;
     if (getConfigOptions(setting, &configOpts, &numValues)) {
         ret += '{';
@@ -56,7 +62,6 @@ std::string CameraConnector::getConfigInfo(const ConfigSetting* setting) {
         }
         ret += "}\n";
     }
-
     return ret;
 }
 
@@ -68,7 +73,8 @@ bool CameraConnector::getConfigOptions(const ConfigSetting* setting, vector<stri
 
         if (setting->hasPossibleValues) {
             for (int i = 0; i < setting->numPossibleValues; i++) {
-                (*values)[i] = (setting->possibleValues[i]);
+                (*values).push_back(setting->possibleValues[i]);
+                // (*values)[i] = (setting->possibleValues[i]);
             }
             *numValues = setting->numPossibleValues;
             return true;
@@ -92,7 +98,7 @@ bool CameraConnector::getConfigOptions(const ConfigSetting* setting, vector<stri
                     }
                     //Todo: this could be better. Taking the char*[] and copying to a string[]
                     for (int i = 0; i < *numValues; i++) {
-                        (*values)[i] = (test[i]);
+                        (*values).push_back(test[i]);
                     }
                     return true;
                 //case GP_WIDGET_RANGE: // todo: add support for range min, max, step getting (function exists in config.c)

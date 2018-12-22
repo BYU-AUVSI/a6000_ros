@@ -62,6 +62,7 @@ public:
      */
     std::string getAllConfigInfo(const vector<ConfigSetting> settings);
     
+    std::string getConfigOptionsString(const ConfigSetting* setting);
     /**
      * Get Config value of the given Setting as a String 
      * 

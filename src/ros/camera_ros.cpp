@@ -5,6 +5,7 @@ GphotoCameraROS::GphotoCameraROS() : nh_private_("~"), img_transport_(nh_private
     image_pub_ = img_transport_.advertise("img", 1);
 
     config_list_srv_ = nh_private_.advertiseService("config_list", &GphotoCameraROS::configListServiceCallback, this);
+    config_get_srv_  = nh_private_.advertiseService("config_get", &GphotoCameraROS::configGetServiceCallback, this);
 
     // setup camera. but dont connect to it yet
     cam_ = CameraConnector();
@@ -44,13 +45,14 @@ void GphotoCameraROS::run() {
         } else {
             // Need more failure handling here
             cout << "cap failed" << endl;
+            // only do error handling if the node is supposed to continue existing
+            // if (nh_private_.ok()) {}
         }
     }
 
     // make sure to properly detach camera resources!
     cam_.close();
 }
-
 
 bool GphotoCameraROS::configListServiceCallback(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res) {
     if (!cam_.isConnected()) {
@@ -83,5 +85,39 @@ bool GphotoCameraROS::configListServiceCallback(std_srvs::Trigger::Request &req,
 }
 
 bool GphotoCameraROS::configGetServiceCallback(a6000_ros::ConfigGet::Request &req, a6000_ros::ConfigGet::Response &res) {
+    if (!cam_.isConnected()) {
+        res.exists = false;
+        res.currentValue = "Camera is not currently connected!";
+    } else {
+        
+        //put the setting name into upper case, since that's how we've made config names work
+        std::string configName = req.configName;
+        std::transform(configName.begin(), configName.end(), configName.begin(), ::toupper);
+
+        const ConfigSetting* setting = A6000Config::getConfigSetting(configName.c_str());
+
+        if (setting == nullptr) {
+            res.exists = false;
+            res.currentValue = "Could not locate setting named: " + configName;
+        } else {
+            // the setting exists lets get info on it
+            res.exists = true;
+
+            char currentValue[50];
+            if (cam_.getConfigStringValue(setting, (char*) currentValue)) {
+                std::string currentStr(currentValue);
+                res.currentValue = currentStr;
+            } else {
+                res.currentValue = "ERR:: Something went wrong trying to get the current value";
+            }
+
+            std::string configOpts = cam_.getConfigOptionsString(setting);
+            if (!configOpts.empty()) {
+                res.possibleValues = configOpts;
+            } else {
+                res.possibleValues = "ERR:: Something went wrong trying to get the possible values";
+            }
+        }
+    }
     return true;
 }
