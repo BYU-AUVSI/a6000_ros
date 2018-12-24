@@ -63,6 +63,10 @@ void GphotoCameraROS::run() {
 }
 
 bool GphotoCameraROS::configListServiceCallback(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res) {
+    // if we get a weird error, we should just reset the camera 
+    // driver connection by closing and opening the camera again
+    bool needsReset = false; 
+
     if (!cam_.isConnected()) {
         res.success = false;
         res.message = "Camera is not currently connected!";
@@ -76,6 +80,7 @@ bool GphotoCameraROS::configListServiceCallback(std_srvs::Trigger::Request &req,
                 // above function was empty, but I'm not sure why else it would happen
                 res.success = false;
                 res.message = "Got nothing when attempting to get configuration info";
+                needsReset = true;
             } else {
                 // Success!
                 res.success = true;
@@ -86,13 +91,22 @@ bool GphotoCameraROS::configListServiceCallback(std_srvs::Trigger::Request &req,
             ROS_WARN("Something went wrong while trying to get config info:: %s", e.what());
             res.success = false;
             res.message = e.what();
-        }
-        
+            needsReset = true;
+        }   
     }
+
+    if (needsReset) {
+        cam_.close();
+    }
+
     return true;
 }
 
 bool GphotoCameraROS::configGetServiceCallback(a6000_ros::ConfigGet::Request &req, a6000_ros::ConfigGet::Response &res) {
+    // if we get a weird error, we should just reset the camera 
+    // driver connection by closing and opening the camera again
+    bool needsReset = false; 
+    
     if (!cam_.isConnected()) {
         res.exists = false;
         res.currentValue = "Camera is not currently connected!";
@@ -118,6 +132,7 @@ bool GphotoCameraROS::configGetServiceCallback(a6000_ros::ConfigGet::Request &re
                 res.currentValue = currentStr;
             } else {
                 res.currentValue = "ERR:: Something went wrong trying to get the current value";
+                needsReset = true;
             }
 
             // get a description of all possible options for the setting
@@ -129,6 +144,11 @@ bool GphotoCameraROS::configGetServiceCallback(a6000_ros::ConfigGet::Request &re
             }
         }
     }
+
+    if (needsReset) {
+        cam_.close();
+    }
+
     return true;
 }
 
