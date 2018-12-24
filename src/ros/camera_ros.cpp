@@ -23,7 +23,9 @@ void GphotoCameraROS::run() {
     unsigned long imgSize;
 
     while (nh_private_.ok()) { // while ROS is up, and this node hasn't been told to close
-        if (cam_.captureImage((const char**) &imgData, &imgSize)) {
+        if (!cam_.isConnected()) {
+            cam_.attemptConnection();
+        } else if (cam_.captureImage((const char**) &imgData, &imgSize)) {
 
             // so the raw data we get from gphoto2 / the captureImage function
             // is straight up jpg data. not raw image bytes or anything. so in order to deal
@@ -40,9 +42,6 @@ void GphotoCameraROS::run() {
             cvbImg.toImageMsg(ros_image);
             image_pub_.publish(ros_image);
 
-            // spinning here allows us to respond to any pending callbacks 
-            // (generally from service calls waiting to be fulfilled)
-            ros::spinOnce(); 
 
         } else {
             // Need more failure handling here
@@ -54,6 +53,9 @@ void GphotoCameraROS::run() {
                 cam_.attemptConnection();
             }
         }
+        // spinning here allows us to respond to any pending callbacks 
+        // (generally from service calls waiting to be fulfilled)
+        ros::spinOnce(); 
     }
 
     // make sure to properly detach camera resources!
@@ -131,6 +133,10 @@ bool GphotoCameraROS::configGetServiceCallback(a6000_ros::ConfigGet::Request &re
 }
 
 bool GphotoCameraROS::configSetServiceCallback(a6000_ros::ConfigSet::Request &req, a6000_ros::ConfigSet::Response &res) {
+    // if we get a weird error, we should just reset the camera 
+    // driver connection by closing and opening the camera again
+    bool needsReset = false; 
+
     if (!cam_.isConnected()) {
         res.success = false;
         res.message = "Camera is not currently connected!";
@@ -154,11 +160,32 @@ bool GphotoCameraROS::configSetServiceCallback(a6000_ros::ConfigSet::Request &re
                 res.success = false;
                 res.message = "Failed to set value for " + configName + ". Is the value valid?";
             } else {
-                res.success = true;
-                res.message = "Successfully updated camera configuration!";
+                // now get the settings current value to verfiy it was successfully changed
+                char currentValue[50];
+                if (!cam_.getConfigStringValue(setting, (char*) currentValue)) {
+                    // for some reason we failed to get the current config value
+                    res.success = false;
+                    res.message = "Unable to verify value was set. Its possible this operation was successful";
+                    needsReset = true;
+                } else {
+                    // make sure the settings value is what we told it to be:
+                    std::string currentStr(currentValue);
+                    if (currentStr.compare(configValue) != 0) {
+                        res.success = false;
+                        res.message = "Driver told us the value was set, but our verification failed. You should retry";
+                        needsReset = true;
+                    } else {
+                        res.success = true;
+                        res.message = "Successfully updated camera configuration!";
+                    }
+                }
             }
         }
-
     }
+
+    if (needsReset) {
+        cam_.close();
+    }
+
     return true;
 }
