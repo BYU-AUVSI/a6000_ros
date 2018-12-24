@@ -46,9 +46,13 @@ void GphotoCameraROS::run() {
 
         } else {
             // Need more failure handling here
-            cout << "cap failed" << endl;
+            ROS_WARN("Camera capture failed, attempting to reconnect");
             // only do error handling if the node is supposed to continue existing
-            // if (nh_private_.ok()) {}
+            if (nh_private_.ok()) {
+                // for now our error handling just involves attempting to
+                // reconnect the camera
+                cam_.attemptConnection();
+            }
         }
     }
 

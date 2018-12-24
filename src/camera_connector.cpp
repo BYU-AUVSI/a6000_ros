@@ -16,12 +16,16 @@ CameraConnector::~CameraConnector() {
 void CameraConnector::close() {
     if (context != nullptr && camera != nullptr) {
         gp_camera_exit(camera, context);
+    }
+    if (camera != nullptr) {
         gp_camera_free(camera);
+        camera = nullptr;
+    }
+    if (context != nullptr) {
 	    gp_context_unref(context);
         context = nullptr;
-        camera = nullptr;
-        connected_ = false;
     }
+    connected_ = false;
 }
 
 bool CameraConnector::isConnected() {
@@ -222,10 +226,10 @@ bool CameraConnector::setConfigValue(const ConfigSetting* setting, std::string v
 bool CameraConnector::captureImage(const char** image_data, unsigned long* size) {
     if (connected_) {
 
-        // trigger_capture will continue to send trigger to the camera until we're able to successfully
+        // trigger_capture will continue to send a trigger to the camera until we're able to successfully
         // get something off of it and into program memory. Note: this can occasionally have the side
         // effect of sending images that got stuck in the camera's buffer previously. Afaik though, images
-        // always come off the camera in chronological order, so this is a non-issue in most situations
+        // always come off the camera in chronological order, so this is a non-issue in 99.999% of situations
         int retVal = trigger_capture_to_memory(context, camera, image_data, size);
 
         if (retVal < GP_OK) {
@@ -264,7 +268,6 @@ bool CameraConnector::blockingConnect() {
     if (connected_) {
         close(); // close out current context in event we're already connected
     }
-    connected_ = false;
     
     CameraList *list;
     int ret = gp_list_new(&list);
@@ -277,55 +280,81 @@ bool CameraConnector::blockingConnect() {
     }
 
     while (!connected_) {
-        int cameraCount = autodetect(list, context);
-        
-        if (cameraCount < GP_OK || cameraCount == 0) {
-            printf("Couldn't detect any cameras - %d\n", cameraCount);
-            usleep(3000000);
-        } else  {
-            printf("Detected %d camera! Connecting to camera 1\n", cameraCount);
-            
-            //further connection stuff:
 
-            // PTP driver by default tries to traverse entire camera file system on connect.
-            // there's a way to stop it from doing this if it becomes untenable (see libgphoto2's sample-capture)
-            gp_camera_new(&camera);
-            int initRet = gp_camera_init(camera, context);
-            if (initRet < GP_OK) {
-                printf("Failed to initialize camera! Error code: %d\n", initRet);
-                close();
-                // wait between connection attempts. even if the camera is connected
-                // it can take a little bit to initialize, and we dont wanna spit out
-                // a whole ton of errors in that time
-                usleep(3000000);
-                continue; //try again, until the user kills us or we connect
-            }
-
-            //print out some basic info about the camera we're connecting to
-            CameraText text;
-            initRet = gp_camera_get_summary(camera, &text, context);
-            if (ret < GP_OK) {
-                printf("Failed to retrieve basic summary of camera: %d\n", initRet);
-                close();
-                usleep(3000000);
-                continue;
-            }
-
-            // The summary from gp_camera_get_summary has a lot of crap we dont care about
-            istringstream summaryStream(text.text);
-            string summaryLine;
-            int numLines = 0;
-            cout << "\nCamera info:" << endl;
-            while (numLines < 14 && std::getline(summaryStream, summaryLine)) {
-                cout << summaryLine << endl;
-                numLines++;
-            }
-
-            printf("Connection Successful!\n");
-            connected_ = true;
-        }
-
+        connectFromList(list);
     }
     return connected_;
 
+}
+
+bool CameraConnector::attemptConnection() {
+    // Only difference between this and blockingConnect
+    // is that the while !connected_ loop blocking has
+    if (connected_) {
+        close(); // close out current context in event we're already connected
+    }
+    
+    CameraList *list;
+    int ret = gp_list_new(&list);
+
+    context = create_context();
+ 
+    if (ret < GP_OK) {
+        printf("Gphoto's gave us this error trying to create a context:: %d\n", ret);
+        return connected_;
+    }
+
+    connectFromList(list);
+
+    return connected_;
+}
+
+void CameraConnector::connectFromList(CameraList* list) {
+    int cameraCount = autodetect(list, context);
+        
+    if (cameraCount < GP_OK || cameraCount == 0) {
+        printf("Couldn't detect any cameras - %d\n", cameraCount);
+        usleep(3000000);
+    } else  {
+        printf("Detected %d camera! Connecting to camera 1\n", cameraCount);
+        
+        //further connection stuff:
+
+        // PTP driver by default tries to traverse entire camera file system on connect.
+        // there's a way to stop it from doing this if it becomes untenable (see libgphoto2's sample-capture)
+        gp_camera_new(&camera);
+        int initRet = gp_camera_init(camera, context);
+        if (initRet < GP_OK) {
+            printf("Failed to initialize camera! Error code: %d\n", initRet);
+            close();
+            // wait between connection attempts. even if the camera is connected
+            // it can take a little bit to initialize, and we dont wanna spit out
+            // a whole ton of errors in that time
+            usleep(3000000);
+            return;
+        }
+
+        //print out some basic info about the camera we're connecting to
+        CameraText text;
+        initRet = gp_camera_get_summary(camera, &text, context);
+        if (initRet < GP_OK) {
+            printf("Failed to retrieve basic summary of camera: %d\n", initRet);
+            close();
+            usleep(3000000);
+            return;
+        }
+
+        // The summary from gp_camera_get_summary has a lot of crap we dont care about
+        istringstream summaryStream(text.text);
+        string summaryLine;
+        int numLines = 0;
+        cout << "\nCamera info:" << endl;
+        while (numLines < 14 && std::getline(summaryStream, summaryLine)) {
+            cout << summaryLine << endl;
+            numLines++;
+        }
+
+        printf("Connection Successful!\n");
+        connected_ = true;
+    }
 }

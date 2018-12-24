@@ -31,7 +31,21 @@ public:
     CameraConnector(bool autoReconnect);
     ~CameraConnector();
 
+    /**
+     * Doesn't exit this function until it has successfully connected to the camera
+     * or experienced a critical error. 3 seconds between connection attempts
+     * 
+     * @return: True when connected to camera, otherwise false.
+     */
     bool blockingConnect();
+
+    /**
+     * Attempts to connect a single time to a connected camera.
+     * Calling
+     * 
+     * 
+     */
+    bool attemptConnection();
 
     bool isConnected();
 
@@ -88,6 +102,9 @@ public:
     void close();
 
 private:
+
+    void connectFromList(CameraList* list);
+
     GPContext* context = nullptr;
     Camera *camera = nullptr;
     bool connected_;
