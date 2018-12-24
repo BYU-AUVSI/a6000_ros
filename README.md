@@ -17,6 +17,8 @@ of libgphoto2. It should work on ARM or x86 linux Ubuntu 16.04. (Currently untes
 
 Configure your a6000 in 'PC Remote' mode by navigating: `Menu -> Suitcase tab on top right -> Page 4 -> USB Connection -> PC Remote`.
 
+To properly get/set settings it also seems to be important to turn off 'Auto Review': `Menu -> Setting Gear Tab -> Page 1 -> Auto Review -> Off`.
+
 Plug the camera into the computer via USB.
 
 ## Build
@@ -61,6 +63,30 @@ currentValue: "3.500000"
 possibleValues: "{3.5, 4.0, 4.5, 5.0, 5.6, 6.3, 7.1, 8.0, 9.0, 10.0, 11.0, 13.0, 14.0, 16.0, 18.0,\
   \ 20.0, 22.0, }\n"
 ```
+
+### config_set
+
+Set config option to a specific value. This service will check that the configuration name is valid and that the value is allowed before setting it. Allowed values are defined by the `possibleValues` string returned from a [config_get](#config_get) call. Note for more intensive setting changes (ie: large changes in shutter speed or f-stop), the camera will halt taking images while changing them - which can take 1-3 seconds.
+
+**Example Call:**
+```bash
+rosservice call /a6000_ros_node/config_set shutter_speed 1/250
+```
+
+**Example Response:**
+```bash
+success: True
+message: "Successfully updated camera configuration!"
+```
+
+IMPORTANT: For values that are represented as floats (eg: f_stop), you need to make sure its passed as a string in your service call:
+
+```bash
+rosservice call /a6000_ros_node/config_set "configName: 'f_stop' 
+value: '6.3'"
+```
+
+If you try and tab-complete on the service, the template for these values should appear. For whatever reason, the newline between configName and value is required.
 
 ## Extending to other cameras
 

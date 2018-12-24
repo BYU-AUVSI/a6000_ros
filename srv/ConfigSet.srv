@@ -1,0 +1,7 @@
+# Set a camera configuration option to a new value
+
+string configName # name of the config option to set
+string value # the value to set it to
+---
+bool success # whether or not this new value was successfully set
+string message # corresponding message, helps with error debugging

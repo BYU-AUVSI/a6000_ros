@@ -4,8 +4,10 @@ GphotoCameraROS::GphotoCameraROS() : nh_private_("~"), img_transport_(nh_private
 
     image_pub_ = img_transport_.advertise("img", 1);
 
+    // setup our configuration services
     config_list_srv_ = nh_private_.advertiseService("config_list", &GphotoCameraROS::configListServiceCallback, this);
     config_get_srv_  = nh_private_.advertiseService("config_get", &GphotoCameraROS::configGetServiceCallback, this);
+    config_set_srv_  = nh_private_.advertiseService("config_set", &GphotoCameraROS::configSetServiceCallback, this);
 
     // setup camera. but dont connect to it yet
     cam_ = CameraConnector();
@@ -100,9 +102,10 @@ bool GphotoCameraROS::configGetServiceCallback(a6000_ros::ConfigGet::Request &re
             res.exists = false;
             res.currentValue = "Could not locate setting named: " + configName;
         } else {
-            // the setting exists lets get info on it
+            // the setting exists, lets get info on it
             res.exists = true;
 
+            //get its current value first
             char currentValue[50];
             if (cam_.getConfigStringValue(setting, (char*) currentValue)) {
                 std::string currentStr(currentValue);
@@ -111,6 +114,7 @@ bool GphotoCameraROS::configGetServiceCallback(a6000_ros::ConfigGet::Request &re
                 res.currentValue = "ERR:: Something went wrong trying to get the current value";
             }
 
+            // get a description of all possible options for the setting
             std::string configOpts = cam_.getConfigOptionsString(setting);
             if (!configOpts.empty()) {
                 res.possibleValues = configOpts;
@@ -118,6 +122,39 @@ bool GphotoCameraROS::configGetServiceCallback(a6000_ros::ConfigGet::Request &re
                 res.possibleValues = "ERR:: Something went wrong trying to get the possible values";
             }
         }
+    }
+    return true;
+}
+
+bool GphotoCameraROS::configSetServiceCallback(a6000_ros::ConfigSet::Request &req, a6000_ros::ConfigSet::Response &res) {
+    if (!cam_.isConnected()) {
+        res.success = false;
+        res.message = "Camera is not currently connected!";
+    } else  {
+        std::string configName = req.configName;
+        std::string configValue = req.value;
+
+        std::transform(configName.begin(), configName.end(), configName.begin(), ::toupper);
+        // try and get the setting by the provided name
+        const ConfigSetting* setting = A6000Config::getConfigSetting(configName.c_str());
+
+        if (setting == nullptr) {
+            res.success = false;
+            res.message = "Could not locate setting named: " + configName;
+        } else {
+            // the setting exists, try and change its value
+            // setConfigValue method will check that the value we're 
+            // trying to set it to is valid
+            // usleep(3000000);
+            if (!cam_.setConfigValue(setting, configValue)) {
+                res.success = false;
+                res.message = "Failed to set value for " + configName + ". Is the value valid?";
+            } else {
+                res.success = true;
+                res.message = "Successfully updated camera configuration!";
+            }
+        }
+
     }
     return true;
 }

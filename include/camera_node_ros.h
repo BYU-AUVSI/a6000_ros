@@ -11,6 +11,7 @@
 // in the the srv/ directory (unless from std_srvs)
 #include <std_srvs/Trigger.h>
 #include "a6000_ros/ConfigGet.h"
+#include "a6000_ros/ConfigSet.h"
 
 using namespace std;
 
@@ -25,9 +26,11 @@ private:
     // ROS service callback for camera configuration
     bool configListServiceCallback(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res);
     bool configGetServiceCallback(a6000_ros::ConfigGet::Request &req, a6000_ros::ConfigGet::Response &res);
+    bool configSetServiceCallback(a6000_ros::ConfigSet::Request &req, a6000_ros::ConfigSet::Response &res);
 
     ros::ServiceServer config_list_srv_;
     ros::ServiceServer config_get_srv_;
+    ros::ServiceServer config_set_srv_;
 
     CameraConnector cam_;
     ros::NodeHandle nh_private_;
