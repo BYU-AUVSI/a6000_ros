@@ -19,6 +19,8 @@ Configure your a6000 in 'PC Remote' mode by navigating: `Menu -> Suitcase tab on
 
 To properly get/set settings it also seems to be important to turn off 'Auto Review': `Menu -> Setting Gear Tab -> Page 1 -> Auto Review -> Off`.
 
+Currently we place the camera in as much of a 'manual mode' as possible. Start by setting the top dial to the `M` (manual) setting. Also turn off Pre-AF, to prevent camera capture from freezing up by trying to focus: `Menu -> Setting Gear Tab -> Page 3 -> Pre-AF -> Off`. Set the focus mode to Direct Manual Focus (DMF): `Fn -> Focus Mode -> DMF`. 
+
 Plug the camera into the computer via USB.
 
 ## Build
