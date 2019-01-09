@@ -10,7 +10,7 @@ This package requires a number of dependencies that are not installed in a defau
 
 - [libgphoto2](https://github.com/gphoto/libgphoto2) (Developed on the 2.5.21 release)
 
-The `install-deps.sh` scripts in the root of the repository will install a verified working release
+The `install-deps.sh` script in the root of the repository will install a verified working release
 of libgphoto2. It should work on ARM or x86 linux Ubuntu 16.04. (Currently untested on other versions).
 
 ## Setup
@@ -96,4 +96,4 @@ If you're super cool and want to extend this code to work with other cameras, do
 
 First, check if the desired camera is on [gphoto2's list of supported cameras](http://gphoto.org/proj/libgphoto2/support.php).
 
-You'll would need to provide configuration setting details in `camera_config_defs.h` and `camera_config_defs.cpp`. Also note compared to other supported cameras, the a6000's capabilities using gphoto2 are fairly basic. Meaning, that for better supported cameras, there may be better ways of interacting with them than how this driver does.
+You'll need to provide configuration setting details in `camera_config_defs.h` and `camera_config_defs.cpp`. Also note compared to other supported cameras, the a6000's capabilities using gphoto2 are fairly basic. Meaning, that for better supported cameras, there may be better ways of interacting with them than how this driver does.

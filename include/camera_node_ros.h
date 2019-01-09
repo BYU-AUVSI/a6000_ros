@@ -36,4 +36,8 @@ private:
     ros::NodeHandle nh_private_;
     image_transport::ImageTransport img_transport_;
     image_transport::Publisher image_pub_;
+
+    // for the actual images
+    char* img_data_;
+    unsigned long img_size_;
 };

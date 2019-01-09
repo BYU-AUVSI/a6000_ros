@@ -11,7 +11,7 @@ static struct queue_entry {
 	CameraFilePath	path;
 	int offset;
 } *queue = NULL;
-static int numFileInQueue = 0;
+static int numFileInQueue = -1;
 
 static int captured;
 
@@ -36,8 +36,9 @@ static int wait_event_and_download(GPContext *context, Camera *camera, int waitt
         gettimeofday(&curtime, NULL);
 
 		timediff = ((curtime.tv_sec - start.tv_sec)*1000)+((curtime.tv_usec - start.tv_usec)/1000);
-		if (timediff >= waittime) 
+		if (timediff >= waittime) {
 			break;
+		}
 
 		retval = gp_camera_wait_for_event(camera, waittime - timediff, &evtype, &data, context);
 		if (retval != GP_OK) {
@@ -62,13 +63,14 @@ static int wait_event_and_download(GPContext *context, Camera *camera, int waitt
                 break;
             case GP_EVENT_FILE_ADDED:
                 printf("   File added to queue\n");
-                if (numFileInQueue) {
+                if (numFileInQueue > -1) {
                     struct queue_entry *q;
-                    q = realloc(queue, sizeof(struct queue_entry)*(numFileInQueue+1));
+                    q = realloc(queue, sizeof(struct queue_entry));
                     if (!q) return GP_ERROR_NO_MEMORY;
                     queue = q;
                 } else {
-                    queue = malloc (sizeof(struct queue_entry));
+                    queue = malloc(sizeof(struct queue_entry));
+					numFileInQueue++;
                     if (!queue) return GP_ERROR_NO_MEMORY;
                 }
                 memcpy(&queue[numFileInQueue].path, path, sizeof(CameraFilePath));
@@ -100,12 +102,12 @@ static int wait_event_and_download(GPContext *context, Camera *camera, int waitt
 
 		if (retval != GP_OK) {
 			printf("   gp_file_get_data_and_size failed: %d\n", retval);
-			gp_file_free (file);
+			gp_file_free(file);
 			return retval;
 		}
 
 		retval = gp_camera_file_delete(camera, queue[0].path.folder, queue[0].path.name, context);
-		memmove(&queue[0],&queue[1],sizeof(queue[0])*(numFileInQueue-1));
+		gp_file_free(file);
 		numFileInQueue--;
 		captured = 1;
 	}

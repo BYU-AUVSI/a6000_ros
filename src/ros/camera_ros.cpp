@@ -19,29 +19,25 @@ void GphotoCameraROS::run() {
     // continuously try to connect to the camera until it works
     cam_.blockingConnect();
 
-    char* imgData;
-    unsigned long imgSize;
-
     while (nh_private_.ok()) { // while ROS is up, and this node hasn't been told to close
         if (!cam_.isConnected()) {
             cam_.attemptConnection();
-        } else if (cam_.captureImage((const char**) &imgData, &imgSize)) {
+        } else if (cam_.captureImage((const char**) &img_data_, &img_size_)) {
 
             // so the raw data we get from gphoto2 / the captureImage function
             // is straight up jpg data. not raw image bytes or anything. so in order to deal
             // with that we need to first put it into a Mat and then call imdecode
             // to properly bundle it into a sensor_msg
             // CV_8SC3 is opencv talk for 8 bit signed 3 channel image data
-            cv::Mat rawData(1, imgSize, CV_8SC3, (void*) imgData);
+            cv::Mat rawData(1, img_size_, CV_8SC3, (void*) img_data_);
 
             cv_bridge::CvImage cvbImg;
             cvbImg.image = cv::imdecode(rawData, -CV_LOAD_IMAGE_COLOR);
-            cvbImg.encoding = "bgr8";
+            cvbImg.encoding = "bgr8"; // bgr is opencv default
 
             sensor_msgs::Image ros_image;
             cvbImg.toImageMsg(ros_image);
             image_pub_.publish(ros_image);
-
 
         } else {
             // Need more failure handling here

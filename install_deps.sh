@@ -12,8 +12,8 @@ function installLibGphoto() {
 
     autoreconf --install --symlink
     ./configure --prefix=/usr/local
-    # make
-    # sudo make install
+    make
+    sudo make install
     
     cd ../
     rm -rf libgphoto2-libgphoto2-2_5_21-release/
