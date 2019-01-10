@@ -13,6 +13,8 @@ This package requires a number of dependencies that are not installed in a defau
 The `install-deps.sh` script in the root of the repository will install a verified working release
 of libgphoto2. It should work on ARM or x86 linux Ubuntu 16.04. (Currently untested on other versions).
 
+- [easyExif](https://github.com/mayanklahiri/easyexif) Is used to retrieve focal length and basic timing information on images before they're published on the image topic. This dependency is small enough and the license liberal enough that its two source files are copied into this driver code. No additional configuration necessary.
+
 ## Setup
 
 Configure your a6000 in 'PC Remote' mode by navigating: `Menu -> Suitcase tab on top right -> Page 4 -> USB Connection -> PC Remote`.

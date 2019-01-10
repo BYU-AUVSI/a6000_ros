@@ -23,7 +23,8 @@ void GphotoCameraROS::run() {
         if (!cam_.isConnected()) {
             cam_.attemptConnection();
         } else if (cam_.captureImage((const char**) &img_data_, &img_size_)) {
-            
+            ros::Time timestamp = ros::Time::now(); // get ts as close to capture as possible
+
             // Parse EXIF
             easyexif::EXIFInfo result;
             int code = result.parseFrom((const unsigned char*) img_data_, (unsigned) img_size_);
@@ -49,8 +50,9 @@ void GphotoCameraROS::run() {
             cvbImg.image = cv::imdecode(rawData, -CV_LOAD_IMAGE_COLOR);
             cvbImg.encoding = "bgr8"; // bgr is opencv default
 
-            sensor_msgs::Image ros_image;
-            cvbImg.toImageMsg(ros_image);
+            sensor_msgs::ImagePtr ros_image = cvbImg.toImageMsg();
+            ros_image->header.stamp = timestamp;
+
             image_pub_.publish(ros_image);
 
         } else {
