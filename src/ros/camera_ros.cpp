@@ -23,6 +23,20 @@ void GphotoCameraROS::run() {
         if (!cam_.isConnected()) {
             cam_.attemptConnection();
         } else if (cam_.captureImage((const char**) &img_data_, &img_size_)) {
+            
+            // Parse EXIF
+            easyexif::EXIFInfo result;
+            int code = result.parseFrom((const unsigned char*) img_data_, (unsigned) img_size_);
+            if (code) {
+                cout << "Error parsing EXIF: code " << code << endl;
+            } else {
+                printf("Lens focal length    : %f mm\n", result.FocalLength);
+                printf("35mm focal length    : %u mm\n", result.FocalLengthIn35mm);
+                printf("Image date/time      : %s\n", result.DateTime.c_str());
+                printf("Original date/time   : %s\n", result.DateTimeOriginal.c_str());
+                printf("Digitize date/time   : %s\n", result.DateTimeDigitized.c_str());
+                printf("Subsecond time       : %s\n", result.SubSecTimeOriginal.c_str());
+            }
 
             // so the raw data we get from gphoto2 / the captureImage function
             // is straight up jpg data. not raw image bytes or anything. so in order to deal

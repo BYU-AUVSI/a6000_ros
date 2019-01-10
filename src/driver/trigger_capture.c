@@ -106,7 +106,6 @@ static int wait_event_and_download(GPContext *context, Camera *camera, int waitt
 		}
 
 		retval = gp_camera_file_delete(camera, queue[0].path.folder, queue[0].path.name, context);
-		// memmove(&queue[0],&queue[1],sizeof(queue[0])*(numFileInQueue-1));
 		gp_file_free(file);
 		numFileInQueue--;
 		captured = 1;
