@@ -223,7 +223,17 @@ bool CameraConnector::setConfigValue(const ConfigSetting* setting, std::string v
     return false;
 }
 
+bool CameraConnector::lastImageHasEXIF() {
+    return hasExif_;
+}
+
+easyexif::EXIFInfo CameraConnector::getExif() {
+    return exifInfo;
+}
+
 bool CameraConnector::captureImage(const char** image_data, unsigned long* size) {
+    exifInfo.clear();
+    hasExif_ = false;
     if (connected_) {
 
         // trigger_capture will continue to send a trigger to the camera until we're able to successfully
@@ -236,6 +246,14 @@ bool CameraConnector::captureImage(const char** image_data, unsigned long* size)
             printf("Capture failed (%d), aborting...\n", retVal);
             return false;
         }
+
+        // Parse EXIF
+        int exifRet = exifInfo.parseFrom((const unsigned char*) image_data, (unsigned) *size);
+        hasExif_ = exifRet == 0;
+        if (exifRet) {
+            printf("Error parsing EXIF (%d)\n", exifRet);
+        }
+
     } else {
         printf("ERR: Trying to capture an image without a camera connected!\n");
         return false;

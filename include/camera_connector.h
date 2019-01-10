@@ -1,5 +1,6 @@
 #pragma once
 #include "gphoto_drv.h"
+#include "exif.h" // easy exif library for image metadata
 #include "camera_config_defs.h" // defines ConfigSetting struct
 #include <stdio.h> // printing
 #include <iostream> // more printing /shrug
@@ -50,6 +51,11 @@ public:
     bool isConnected();
 
     bool captureImage(const char** image_data, unsigned long* size);
+
+    bool lastImageHasEXIF();
+
+    easyexif::EXIFInfo getExif();
+
     bool writeImageToFile(const char* file_name, const char* image_data, unsigned long size);
 
     // Config Options:
@@ -107,8 +113,10 @@ private:
 
     GPContext* context = nullptr;
     Camera *camera = nullptr;
+    easyexif::EXIFInfo exifInfo;
     bool connected_;
     bool autoReconnect_ = true;
+    bool hasExif_ = false;
 };
 
 
