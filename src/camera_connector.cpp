@@ -248,7 +248,7 @@ bool CameraConnector::captureImage(const char** image_data, unsigned long* size)
         }
 
         // Parse EXIF
-        int exifRet = exifInfo.parseFrom((const unsigned char*) image_data, (unsigned) *size);
+        int exifRet = exifInfo.parseFrom((const unsigned char*) *image_data, (unsigned) *size);
         hasExif_ = exifRet == 0;
         if (exifRet) {
             printf("Error parsing EXIF (%d)\n", exifRet);

@@ -25,23 +25,22 @@ void GphotoCameraROS::run() {
         } else if (cam_.captureImage((const char**) &img_data_, &img_size_)) {
             ros::Time timestamp = ros::Time::now(); // get ts as close to capture as possible
 
-            
-            // printf("Lens focal length    : %f mm\n", result.FocalLength);
-            // printf("35mm focal length    : %u mm\n", result.FocalLengthIn35mm);
-            // printf("Image date/time      : %s\n", result.DateTime.c_str());
-            // printf("Original date/time   : %s\n", result.DateTimeOriginal.c_str());
-            // printf("Digitize date/time   : %s\n", result.DateTimeDigitized.c_str());
-            // printf("Subsecond time       : %s\n", result.SubSecTimeOriginal.c_str());
+            if (cam_.lastImageHasEXIF()) {
+                printf("Lens focal length    : %f mm\n", cam_.getExif().FocalLength);
+                printf("Digitize date/time   : %s\n", cam_.getExif().DateTimeDigitized.c_str());
+            }
 
             // so the raw data we get from gphoto2 / the captureImage function
             // is straight up jpg data. not raw image bytes or anything. so in order to deal
             // with that we need to first put it into a Mat and then call imdecode
             // to properly bundle it into a sensor_msg
             // CV_8SC3 is opencv talk for 8 bit signed 3 channel image data
-            cv::Mat rawData(1, img_size_, CV_8SC3, (void*) img_data_);
+            // cv::Mat rawData(1, img_size_, CV_8SC3, (void*) img_data_);
 
             cv_bridge::CvImage cvbImg;
-            cvbImg.image = cv::imdecode(rawData, -CV_LOAD_IMAGE_COLOR);
+            // cvbImg.image = cv::imdecode(rawData, -CV_LOAD_IMAGE_COLOR);
+            // looking to optimize this part as much as possible:
+            cvbImg.image = cv::imdecode(cv::Mat(1, img_size_, CV_8SC3, (void*) img_data_), CV_LOAD_IMAGE_UNCHANGED);
             cvbImg.encoding = "bgr8"; // bgr is opencv default
 
             sensor_msgs::ImagePtr ros_image = cvbImg.toImageMsg();
