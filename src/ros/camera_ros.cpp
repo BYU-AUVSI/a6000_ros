@@ -4,13 +4,21 @@ GphotoCameraROS::GphotoCameraROS() : nh_private_("~"), img_transport_(nh_private
 
     image_pub_ = img_transport_.advertise("img", 1);
 
+    focal_length_pub_ = nh_private_.advertise<std_msgs::Float32>("img/focal_length", 1);
+    cur_focal_len_ = -1; //initialize to garbage value so it gets updated
+
     // setup our configuration services
     config_list_srv_ = nh_private_.advertiseService("config_list", &GphotoCameraROS::configListServiceCallback, this);
-    config_get_srv_  = nh_private_.advertiseService("config_get", &GphotoCameraROS::configGetServiceCallback, this);
-    config_set_srv_  = nh_private_.advertiseService("config_set", &GphotoCameraROS::configSetServiceCallback, this);
+    config_get_srv_  = nh_private_.advertiseService("config_get",  &GphotoCameraROS::configGetServiceCallback, this);
+    config_set_srv_  = nh_private_.advertiseService("config_set",  &GphotoCameraROS::configSetServiceCallback, this);
 
     // setup camera. but dont connect to it yet
     cam_ = CameraConnector();
+
+    /*
+    disable depth plugins:
+    rosparam set /a6000_ros_node/img/disable_pub_plugins "['image_transport/compressedDepth', 'image_transport/theora']"
+    */
 
 }
 
@@ -19,6 +27,9 @@ void GphotoCameraROS::run() {
     // continuously try to connect to the camera until it works
     cam_.blockingConnect();
 
+    std_msgs::Float32Ptr focalLengthMsg(new std_msgs::Float32);
+    float measuredFocalLength = -1;
+
     while (nh_private_.ok()) { // while ROS is up, and this node hasn't been told to close
         if (!cam_.isConnected()) {
             cam_.attemptConnection();
@@ -26,8 +37,20 @@ void GphotoCameraROS::run() {
             ros::Time timestamp = ros::Time::now(); // get ts as close to capture as possible
 
             if (cam_.lastImageHasEXIF()) {
-                printf("Lens focal length    : %f mm\n", cam_.getExif().FocalLength);
-                printf("Digitize date/time   : %s\n", cam_.getExif().DateTimeDigitized.c_str());
+                measuredFocalLength = cam_.getExif().FocalLength;
+                // this is mildly inelegant, but since the focal length 
+                // shouldnt really change ever, we dont need to worry too
+                // much about it syncing up with images 
+                // if you do need to worry about that for some reason (fl syncing per img),
+                // then roll a custom message with image and focal length
+                // or create a message with a std_msgs/Header and a float to publish fl
+                focalLengthMsg->data = measuredFocalLength;
+                focal_length_pub_.publish(focalLengthMsg);
+
+                if (measuredFocalLength != cur_focal_len_) {
+                    cur_focal_len_ = measuredFocalLength;
+                    printf("Lens focal length    : %f mm\n", measuredFocalLength);
+                }
             }
 
             // so the raw data we get from gphoto2 / the captureImage function

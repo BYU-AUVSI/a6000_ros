@@ -13,6 +13,7 @@ static int captured;
 
 /**
  * This code comes from libgphoto2's samples, with some modification done by me
+ * waittime in ms?
  */
 static int wait_event_and_download(GPContext *context, Camera *camera, int waittime, const char **buffer, unsigned long int *size) {
 	CameraEventType	evtype;
@@ -50,8 +51,6 @@ static int wait_event_and_download(GPContext *context, Camera *camera, int waitt
                 break;
             case GP_EVENT_FILE_ADDED:
 				path_ = data;
-                printf("   File added to queue\n");
-                // memcpy(&final_path_, path_, sizeof(CameraFilePath));
 				got_path_ = 1;
                 break;
 		}
