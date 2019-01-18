@@ -28,3 +28,25 @@ int autodetect(CameraList *list, GPContext *context) {
 	gp_list_reset (list);
         return gp_camera_autodetect (list, context);
 }
+
+// GP_PORT TYPE
+// 0 - GP_PORT_NONE 	
+// 1 - GP_PORT_SERIAL
+// 2 - GP_PORT_USB
+// 3 - GP_PORT_DISK 	
+// 4 - GP_PORT_PTPIP 	
+// 5 - GP_PORT_USB_DISK_DIRECT 	
+// 6 - GP_PORT_USB_SCSI 
+void printCameraPortInfo(Camera* camera) {
+        GPPortInfo portInfo;
+        GPPortType type;
+        int ret = gp_camera_get_port_info(camera, &portInfo);
+
+        if (ret < GP_OK) {
+                printf("Failed to get Port Info!\n");
+        } else {
+                printf("PORT INFO::\n");
+                gp_port_info_get_type (portInfo, &type);
+                printf("\ttype:%i\n", type);
+        }
+}

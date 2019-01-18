@@ -42,6 +42,10 @@ private:
     // for the actual images
     char* img_data_;
     unsigned long img_size_;
-    // keep track of focal_length:
+    // keep track of focal_length.
+    // since focal length is almost definitely going to stay constant
+    // during flight, we dont need to worry too much about tying a 
+    // measurement with each image. Instead, we only publish when there's
+    // a change to it
     float cur_focal_len_;
 };

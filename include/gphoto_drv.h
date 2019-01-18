@@ -1,6 +1,7 @@
 #ifndef gphoto_drv_H
 #define gphoto_drv_H
 #include <gphoto2/gphoto2-camera.h>
+#include <gphoto2/gphoto2-port-info-list.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -8,6 +9,7 @@ extern "C" {
 
 int autodetect(CameraList *list, GPContext *context);
 GPContext* create_context(void);
+void printCameraPortInfo(Camera* camera);
 
 // capture functions:
 // single capture attempt. can freeze up if autofocus fails to work quickly

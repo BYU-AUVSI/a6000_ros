@@ -341,7 +341,9 @@ void CameraConnector::connectFromList(CameraList* list) {
         // PTP driver by default tries to traverse entire camera file system on connect.
         // there's a way to stop it from doing this if it becomes untenable (see libgphoto2's sample-capture)
         gp_camera_new(&camera);
+        printCameraPortInfo(camera);
         int initRet = gp_camera_init(camera, context);
+        printCameraPortInfo(camera);
         if (initRet < GP_OK) {
             printf("Failed to initialize camera! Error code: %d\n", initRet);
             close();
