@@ -40,13 +40,18 @@ int autodetect(CameraList *list, GPContext *context) {
 void printCameraPortInfo(Camera* camera) {
         GPPortInfo portInfo;
         GPPortType type;
+        char* charData;
         int ret = gp_camera_get_port_info(camera, &portInfo);
 
         if (ret < GP_OK) {
                 printf("Failed to get Port Info!\n");
         } else {
                 printf("PORT INFO::\n");
-                gp_port_info_get_type (portInfo, &type);
-                printf("\ttype:%i\n", type);
+                gp_port_info_get_type(portInfo, &type);
+                printf("\ttype: %i\n", type);
+                gp_port_info_get_name(portInfo, &charData);
+                printf("\tname: %s\n", charData);
+                gp_port_info_get_path(portInfo, &charData);
+                printf("\tpath: %s\n", charData);
         }
 }

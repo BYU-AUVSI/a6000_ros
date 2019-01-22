@@ -1,4 +1,4 @@
-#1/bin/bash
+#!/bin/bash
 
 function installLibGphoto() {
     # dependencies for the dependency. Need these to build libgphoto2 from src
