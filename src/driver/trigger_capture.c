@@ -56,7 +56,6 @@ static int wait_event_and_download(GPContext *context, Camera *camera, int waitt
 		}
 	}
 	if (got_path_) {
-
 		retval = gp_file_new(&file);
 
 		printf("   camera getfile of %s\n", path_->name);
@@ -77,7 +76,6 @@ static int wait_event_and_download(GPContext *context, Camera *camera, int waitt
 		}
 
 		retval = gp_camera_file_delete(camera, path_->folder, path_->name, context);
-		// gp_file_free(file); 
 		free(data);
 		captured = 1;
 	}
