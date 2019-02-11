@@ -35,7 +35,7 @@ bool CameraConnector::isConnected() {
 std::string CameraConnector::getAllConfigBasicInfo(const vector<ConfigSetting> settings) {
     std::string ret = "";
     char currentValue[50];
-    for (int i = 0; i < settings.size(); i++) {
+    for (unsigned int i = 0; i < settings.size(); i++) {
         ret += settings.at(i).name;
         ret += " = ";
         if (getConfigStringValue((const ConfigSetting*) &settings.at(i), (char*) currentValue)) {
@@ -262,7 +262,7 @@ bool CameraConnector::captureImage(const char** image_data, unsigned long* size)
 }
 
 bool CameraConnector::writeImageToFile(const char* file_name, const char* image_data, unsigned long size) {
-    int retval;
+    unsigned int retval;
     FILE* f;
 
     if (image_data != nullptr) {

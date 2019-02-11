@@ -29,7 +29,7 @@ const std::vector<ConfigSetting> A6000Config::ALL {A6000Config::IMAGE_SIZE, A600
 
 
 const ConfigSetting* A6000Config::getConfigSetting(const char* settingName) {
-    for (int i = 0; i < ALL.size(); i++) {
+    for (unsigned int i = 0; i < ALL.size(); i++) {
         if (strcmp(settingName, ALL.at(i).name) == 0) {
             return &ALL.at(i);
         }
