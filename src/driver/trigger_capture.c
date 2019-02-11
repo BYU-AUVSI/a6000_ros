@@ -15,7 +15,7 @@ static int captured;
  * This code comes from libgphoto2's samples, with some modification done by me
  * waittime in ms?
  */
-static int wait_event_and_download(GPContext *context, Camera *camera, int waittime, const char **buffer, unsigned long int *size) {
+static int wait_event_and_download(GPContext *context, Camera *camera, int waittime, CameraFile* file, const char **buffer, unsigned long int *size) {
 	CameraEventType	evtype;
 	CameraFilePath	*path_;
 	void			*data;
@@ -56,8 +56,6 @@ static int wait_event_and_download(GPContext *context, Camera *camera, int waitt
 		}
 	}
 	if (got_path_) {
-		CameraFile	*file;
-
 		retval = gp_file_new(&file);
 
 		printf("   camera getfile of %s\n", path_->name);
@@ -78,14 +76,13 @@ static int wait_event_and_download(GPContext *context, Camera *camera, int waitt
 		}
 
 		retval = gp_camera_file_delete(camera, path_->folder, path_->name, context);
-		gp_file_free(file);
 		free(data);
 		captured = 1;
 	}
 	return GP_OK;
 }
 
-int trigger_capture_to_memory(GPContext *context, Camera *camera, const char** data, unsigned long* size) {
+int trigger_capture_to_memory(GPContext *context, Camera *camera, CameraFile* file, const char** data, unsigned long* size) {
 	int		retval;
 	captured = 0;
 
@@ -95,7 +92,7 @@ int trigger_capture_to_memory(GPContext *context, Camera *camera, const char** d
 		return retval;
 	}
 	while (!captured) {
-		retval = wait_event_and_download(context, camera, 100, data, size);
+		retval = wait_event_and_download(context, camera, 100, file, data, size);
 		if (captured || retval != GP_OK) {
 			break;
 		}

@@ -50,6 +50,18 @@ public:
 
     bool isConnected();
 
+    /** Capture an image off the camera, and store it on memory.
+     * image_data will the image as a byte array (in the case of the a6000,
+     * this data array is fully in a jpeg format). Size will return with the 
+     * corresponding size of the image.
+     * 
+     * NOTE: This method assumes serial operation. ie: capture one image, process
+     *  it and then capture another image, without ever needing to reference the 
+     *  previous image again. It is the responsibility of the user to memcopy
+     *  the buffer if they want to access an old image after calling this function
+     *  a second time.
+     * 
+     */
     bool captureImage(const char** image_data, unsigned long* size);
 
     bool lastImageHasEXIF();
@@ -113,6 +125,7 @@ private:
 
     GPContext* context = nullptr;
     Camera *camera = nullptr;
+    CameraFile *currentFile_ = nullptr;
     easyexif::EXIFInfo exifInfo;
     bool connected_;
     bool autoReconnect_ = true;

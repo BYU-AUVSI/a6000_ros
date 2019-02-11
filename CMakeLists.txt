@@ -2,8 +2,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(a6000_ros)
 
-
 set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_FLAGS "-Wall") # we should be warning free
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMakeModules)
 
 find_package(Gphoto2 REQUIRED) # camera driver base
@@ -38,13 +38,10 @@ file(GLOB src_dir
 
 message(STATUS ${PROJECT_SOURCE_DIR})
 
-# set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ../)
-
 # test exe, independent of ROS
 add_executable(${PROJECT_NAME}_test ${src_dir} src/test/main.cpp)
 target_include_directories(${PROJECT_NAME}_test PUBLIC  ${PROJECT_SOURCE_DIR}/include ${Gphoto2_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME}_test PRIVATE ${Gphoto2_LIBRARIES})
-
 
 # the main ros driver
 add_executable(${PROJECT_NAME}_node ${src_dir} src/ros/camera_node.cpp src/ros/camera_ros.cpp)
