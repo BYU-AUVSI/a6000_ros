@@ -25,6 +25,9 @@ void CameraConnector::close() {
 	    gp_context_unref(context);
         context = nullptr;
     }
+    if (currentFile_ != nullptr) {
+        gp_file_free(currentFile_); /* Note: this invalidates image_data buffer. */
+    }
     connected_ = false;
 }
 
@@ -234,15 +237,29 @@ easyexif::EXIFInfo CameraConnector::getExif() {
 bool CameraConnector::captureImage(const char** image_data, unsigned long* size) {
     exifInfo.clear();
     hasExif_ = false;
+    *size = 0; // set size long to 0 -> so we can use it to check stuff later
     if (connected_) {
+
+        // clear out the last file if its still here:
+        if (currentFile_ != nullptr) {
+            // file_free invalidates the image_data buffer, meaning we need to 
+            //    keep this file setup for as long as the caller above is using it.
+            //     We're assuming here that if they call captureImage again, then 
+            //     they no longer care about what's currently in the CameraFile
+            //     and we can free it up, so that we can use it for the next one
+            // NOTE: this has the implication that we can only handle one image 
+            //    at a time. You would have to change how this works if you want
+            //    to allow the user to access and use multiple images simultaneously
+            gp_file_free(currentFile_); /* Note: this invalidates image_data buffer. */
+        }
 
         // trigger_capture will continue to send a trigger to the camera until we're able to successfully
         // get something off of it and into program memory. Note: this can occasionally have the side
         // effect of sending images that got stuck in the camera's buffer previously. Afaik though, images
         // always come off the camera in chronological order, so this is a non-issue in 99.999% of situations
-        int retVal = trigger_capture_to_memory(context, camera, image_data, size);
+        int retVal = trigger_capture_to_memory(context, camera, currentFile_, image_data, size);
 
-        if (retVal < GP_OK) {
+        if (retVal < GP_OK || (*size) == 0) {
             printf("Capture failed (%d), aborting...\n", retVal);
             return false;
         }

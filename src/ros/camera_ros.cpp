@@ -87,6 +87,7 @@ void GphotoCameraROS::run() {
     }
 
     // make sure to properly detach camera resources!
+    printf("Call close...\n");
     cam_.close();
 }
 
