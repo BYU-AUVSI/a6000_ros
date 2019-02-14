@@ -1,3 +1,7 @@
+/**
+ * This code comes from libgphoto2's samples, with a bunch modification done by me
+ * Note their license is LGPL, though idk how that applies here
+ */
 #include "gphoto_drv.h"
 #include <stdlib.h> 
 #include <sys/types.h>
@@ -11,10 +15,6 @@ static int got_path_ = 0;
 // CameraFilePath final_path_;
 static int captured;
 
-/**
- * This code comes from libgphoto2's samples, with some modification done by me
- * waittime in ms?
- */
 static int wait_event_and_download(GPContext *context, Camera *camera, int waittime, CameraFile* file, const char **buffer, unsigned long int *size) {
 	CameraEventType	evtype;
 	CameraFilePath	*path_;

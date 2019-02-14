@@ -1,3 +1,7 @@
+/**
+ * This code comes from libgphoto2's samples, with a bunch modification done by me
+ * Note their license is LGPL, though idk how that applies here
+ */
 #ifndef gphoto_drv_H
 #define gphoto_drv_H
 #include <gphoto2/gphoto2-camera.h>

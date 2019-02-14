@@ -1,5 +1,8 @@
+/**
+ * This code comes from libgphoto2's samples, with a bunch modification done by me
+ * Note their license is LGPL, though idk how that applies here
+ */
 #include "gphoto_drv.h"
-
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
