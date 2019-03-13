@@ -117,7 +117,7 @@ public:
     /**
      * 
      * Given an array of configuration settings, call #getConfigInfo on
-     * all of them and and combine the resulting strings into a single string
+     * all of them and combine the resulting strings into a single string
      * 
      * @returns string with all config info for the settings in the provided array
      */

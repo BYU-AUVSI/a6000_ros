@@ -31,6 +31,12 @@
 
 GphotoCameraROS::GphotoCameraROS() : nh_private_("~"), img_transport_(nh_private_) {
 
+    // private nh is relative to our node ie: a6000_ros_node is prepended to this:
+    // this disables depth and theora plugins which are unnecessary for our stuff.
+    //      basically just want to clean up the rostopic list of all unnecessary crap. 
+    //      also dont worry about compressed images
+    nh_private_.setParam("/img/disable_pub_plugins", "['image_transport/compressedDepth', 'image_transport/theora', 'image_transport/compressed']");
+
     image_pub_ = img_transport_.advertise("img", 1);
 
     focal_length_pub_ = nh_private_.advertise<std_msgs::Float32>("img/focal_length", 1);
@@ -43,12 +49,6 @@ GphotoCameraROS::GphotoCameraROS() : nh_private_("~"), img_transport_(nh_private
 
     // setup camera. but dont connect to it yet
     cam_ = CameraConnector();
-
-    /*
-    disable depth plugins:
-    rosparam set /a6000_ros_node/img/disable_pub_plugins "['image_transport/compressedDepth', 'image_transport/theora']"
-    */
-
 }
 
 void GphotoCameraROS::run() {

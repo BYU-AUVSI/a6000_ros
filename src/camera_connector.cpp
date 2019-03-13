@@ -31,6 +31,7 @@
 
 
 CameraConnector::CameraConnector() {
+    // really thought there'd be more todo here when i first made these ¯\_(ツ)_/¯ 
     printf("Startup Camera Connector\n");
 }
 
@@ -43,6 +44,7 @@ CameraConnector::~CameraConnector() {
 }
 
 void CameraConnector::close() {
+    // properly close all of our gphoto stuff if it even exists to begin with
     if (context != nullptr && camera != nullptr) {
         gp_camera_exit(camera, context);
     }
@@ -276,7 +278,8 @@ bool CameraConnector::captureImage(const char** image_data, unsigned long* size)
             //     We're assuming here that if they call captureImage again, then 
             //     they no longer care about what's currently in the CameraFile
             //     and we can free it up, so that we can use it for the next one
-            // NOTE: this has the implication that we can only handle one image 
+            // NOTE: this has the implication that the top-level can only handle one image 
+            //    (unless they copy the data to another location)
             //    at a time. You would have to change how this works if you want
             //    to allow the user to access and use multiple images simultaneously
             gp_file_free(currentFile_); /* Note: this invalidates image_data buffer. */
