@@ -1,0 +1,14 @@
+dist: "xenial"
+language: cpp
+
+addons:
+  apt:
+    packages:
+      - cmake
+
+# make sure that install deps still works on a fresh system
+before_install:
+  - ./install_deps.sh
+
+script:
+  - ./test_build.sh
