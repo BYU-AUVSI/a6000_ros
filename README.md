@@ -1,8 +1,8 @@
-# Sony a6000 ROS
+# Sony a6000 ROS [![Build Status](https://travis-ci.com/BYU-AUVSI/a6000_ros.svg)](https://travis-ci.com/BYU-AUVSI/a6000_ros)
 
-This package exposes a Sony a6000 to a ROS network by using [GPhoto2](https://github.com/gphoto/). While this driver was primarily built for the a6000, it should easily extend to other cameras. The ROS node itself is added as a wrapper class to the core driver, meaning that its also possible to continue using the base driver code without ROS if needed.
+This package exposes a Sony a6000 to a ROS network by using [GPhoto2](https://github.com/gphoto/). While this driver was primarily built for the a6000, it should easily extend to other cameras. The ROS node itself is added as a wrapper class to the core driver, meaning that its also possible to use the base driver code without ROS if needed.
 
-The [image_transport](https://wiki.ros.org/image_transport) package is used to publish images onto the ROS network. Note that the base /img topic will reflect whatever quality is set on the camera. ie: if the camera settings are configured to capture 16MP jpg images, these are what will be published on the /img topic, while the /img/compressed topic will be that jpg image, pushed again through image_transport's compressor.
+The [image_transport](https://wiki.ros.org/image_transport) package is used to publish images onto the ROS network. Note that the base /img topic will reflect whatever quality is set on the camera. ie: if the camera settings are configured to capture 12MP jpg images, these are what will be published on the /img topic.
 
 ## Dependencies
 
@@ -10,8 +10,7 @@ This package requires a number of dependencies that are not installed in a defau
 
 - [libgphoto2](https://github.com/gphoto/libgphoto2) (Developed on the 2.5.21 release)
 
-The `install-deps.sh` script in the root of the repository will install a verified working release
-of libgphoto2. It should work on ARM or x86 linux Ubuntu 16.04. (Currently untested on other versions).
+The `install-deps.sh` script in the root of the repository will install a verified working release of libgphoto2. It should work on ARM or x86 linux Ubuntu 16.04. (Currently untested on other versions).
 
 - [easyExif](https://github.com/mayanklahiri/easyexif) Is used to retrieve focal length and basic timing information on images before they're published on the image topic. This dependency is small enough and the license liberal enough that its two source files are copied into this driver code. No additional configuration necessary.
 

@@ -17,14 +17,13 @@ file(GLOB src_dir
 message(STATUS ${PROJECT_SOURCE_DIR})
 
 if(BUILD_TESTS)
-    message(STATUS "B UILD TEST ONLYYYYYYY")
+    message(STATUS "building test code only")
     # test exe, independent of ROS
     add_executable(${PROJECT_NAME}_test ${src_dir} src/test/main.cpp)
     target_include_directories(${PROJECT_NAME}_test PUBLIC  ${PROJECT_SOURCE_DIR}/include ${Gphoto2_INCLUDE_DIRS})
     target_link_libraries(${PROJECT_NAME}_test PRIVATE ${Gphoto2_LIBRARIES})
 else()
 
-    message(STATUS "ROSSSSSS??")
     # build ros stuff
     find_package(catkin REQUIRED COMPONENTS
     roscpp
