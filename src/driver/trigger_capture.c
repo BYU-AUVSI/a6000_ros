@@ -20,7 +20,8 @@ static int wait_event_and_download(GPContext *context, Camera *camera, int waitt
 	CameraFilePath	*path_;
 	void			*data;
 	int				retval;
-    struct timeval	start, curtime;
+    struct timeval	start, curtime, getFile;
+	double ts; // temp timestamp variable for printing (may actually be used later...)
 
     gettimeofday(&start, NULL);
 	data = NULL;
@@ -60,6 +61,7 @@ static int wait_event_and_download(GPContext *context, Camera *camera, int waitt
 
 		printf("   camera getfile of %s\n", path_->name);
 		retval = gp_camera_file_get(camera, path_->folder, path_->name, GP_FILE_TYPE_NORMAL, file, context);
+		gettimeofday(&getFile, NULL);
 		
 		if (retval != GP_OK) {
 			printf ("   gp_camera_file_get failed: %d\n", retval);
@@ -74,6 +76,8 @@ static int wait_event_and_download(GPContext *context, Camera *camera, int waitt
 			gp_file_free(file);
 			return retval;
 		}
+		ts = getFile.tv_sec + ( getFile.tv_usec / 1000000.0 );
+		printf("File Get: %f\n", ts);
 
 		retval = gp_camera_file_delete(camera, path_->folder, path_->name, context);
 		free(data);
@@ -82,27 +86,59 @@ static int wait_event_and_download(GPContext *context, Camera *camera, int waitt
 	return GP_OK;
 }
 
-int trigger_capture_to_memory(GPContext *context, Camera *camera, CameraFile* file, const char** data, unsigned long* size) {
+static double avg_ts(struct timeval* ts1, struct timeval* ts2) {
+	// get the average timestamp value between two time structs as a double unix epoch TS
+	double avg;
+	avg = (ts1->tv_sec + (ts1->tv_usec / 1000000.0)) + (ts2->tv_sec + (ts2->tv_usec / 1000000.0));
+	avg /= 2; //resolution error? tests seems to be pretty accurate. could be an issue for very large TS?
+	return avg;
+}
+
+int trigger_capture_to_memory(GPContext *context, Camera *camera, CameraFile* file, const char** data, unsigned long* size, double* trigger_ts) {
 	int		retval;
 	captured = 0;
+	double ts, avg;
+	struct timeval triggerStart, triggerEnd;
 
+
+	gettimeofday(&triggerStart, NULL);
 	retval = gp_camera_trigger_capture(camera, context);
+	gettimeofday(&triggerEnd, NULL);
+
+	*trigger_ts = avg_ts(&triggerStart, &triggerEnd);
+
+	// ts = triggerStart.tv_sec + ( triggerStart.tv_usec / 1000000.0 );
+	// avg = ts;
+	// printf("Trigger Start: %f\n", ts);
+	// ts = triggerEnd.tv_sec + ( triggerEnd.tv_usec / 1000000.0 );
+	// avg += ts;
+	// printf("Trigger End: %f\n", ts);
+	// avg /= 2;
+	// printf("Trigger Mid: %f\n", avg);
+
 	if ((retval != GP_OK) && (retval != GP_ERROR) && (retval != GP_ERROR_CAMERA_BUSY)) {
 		printf("   triggering capture had error %d\n", retval);
 		return retval;
 	}
 	while (!captured) {
-		retval = wait_event_and_download(context, camera, 100, file, data, size);
+		retval = wait_event_and_download(context, camera, 250, file, data, size);
 		if (captured || retval != GP_OK) {
 			break;
 		}
 
 		if ((time(NULL) & 1) == 1)  {
+			// TODO: if we re-trigger a capture, should we update the returned trigger_ts?
+			//		  Need to test more. seems like it'll often end up returning the original 
+			// 		  trigger captured image when we do this?
+			gettimeofday(&triggerStart, NULL);
 			retval = gp_camera_trigger_capture(camera, context);
+			gettimeofday(&triggerEnd, NULL);
 			if ((retval != GP_OK) && (retval != GP_ERROR) && (retval != GP_ERROR_CAMERA_BUSY)) {
 				printf("   triggering capture had error %d\n", retval);
+				*trigger_ts = 0;
 				break;
 			}
+			*trigger_ts = avg_ts(&triggerStart, &triggerEnd); // update the trigger timestamp?
 		}
 	}
 
