@@ -52,18 +52,19 @@ GphotoCameraROS::GphotoCameraROS() : nh_private_("~"), img_transport_(nh_private
 }
 
 void GphotoCameraROS::run() {
+    // variables we're gonna use a bunch
+    std_msgs::Float32Ptr focalLengthMsg(new std_msgs::Float32);
+    float measuredFocalLength = -1;
+    cv_bridge::CvImage cvbImg;
+    double trigger_ts;
 
     // continuously try to connect to the camera until it works
     cam_.blockingConnect();
 
-    std_msgs::Float32Ptr focalLengthMsg(new std_msgs::Float32);
-    float measuredFocalLength = -1;
-
     while (nh_private_.ok()) { // while ROS is up, and this node hasn't been told to close
         if (!cam_.isConnected()) {
             cam_.attemptConnection();
-        } else if (cam_.captureImage((const char**) &img_data_, &img_size_)) {
-            ros::Time timestamp = ros::Time::now(); // get ts as close to capture as possible
+        } else if (cam_.captureImage((const char**) &img_data_, &img_size_, &trigger_ts)) {
 
             if (cam_.lastImageHasEXIF()) {
                 measuredFocalLength = cam_.getExif().FocalLength;
@@ -87,16 +88,12 @@ void GphotoCameraROS::run() {
             // with that we need to first put it into a Mat and then call imdecode
             // to properly bundle it into a sensor_msg
             // CV_8SC3 is opencv talk for 8 bit signed 3 channel image data
-            // cv::Mat rawData(1, img_size_, CV_8SC3, (void*) img_data_);
-
-            cv_bridge::CvImage cvbImg;
-            // cvbImg.image = cv::imdecode(rawData, -CV_LOAD_IMAGE_COLOR);
             // looking to optimize this part as much as possible:
             cvbImg.image = cv::imdecode(cv::Mat(1, img_size_, CV_8SC3, (void*) img_data_), CV_LOAD_IMAGE_UNCHANGED);
             cvbImg.encoding = "bgr8"; // bgr is opencv default
 
             sensor_msgs::ImagePtr ros_image = cvbImg.toImageMsg();
-            ros_image->header.stamp = timestamp;
+            ros_image->header.stamp = ros::Time(trigger_ts);
 
             image_pub_.publish(ros_image);
 

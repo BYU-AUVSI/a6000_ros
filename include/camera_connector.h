@@ -91,7 +91,7 @@ public:
      *  a second time.
      * 
      */
-    bool captureImage(const char** image_data, unsigned long* size);
+    bool captureImage(const char** image_data, unsigned long* size, double* trigger_timestamp);
 
     bool lastImageHasEXIF();
 

@@ -21,7 +21,6 @@ static int wait_event_and_download(GPContext *context, Camera *camera, int waitt
 	void			*data;
 	int				retval;
     struct timeval	start, curtime, getFile;
-	double ts; // temp timestamp variable for printing (may actually be used later...)
 
     gettimeofday(&start, NULL);
 	data = NULL;
@@ -61,7 +60,6 @@ static int wait_event_and_download(GPContext *context, Camera *camera, int waitt
 
 		printf("   camera getfile of %s\n", path_->name);
 		retval = gp_camera_file_get(camera, path_->folder, path_->name, GP_FILE_TYPE_NORMAL, file, context);
-		gettimeofday(&getFile, NULL);
 		
 		if (retval != GP_OK) {
 			printf ("   gp_camera_file_get failed: %d\n", retval);
@@ -76,8 +74,6 @@ static int wait_event_and_download(GPContext *context, Camera *camera, int waitt
 			gp_file_free(file);
 			return retval;
 		}
-		ts = getFile.tv_sec + ( getFile.tv_usec / 1000000.0 );
-		printf("File Get: %f\n", ts);
 
 		retval = gp_camera_file_delete(camera, path_->folder, path_->name, context);
 		free(data);
@@ -97,24 +93,15 @@ static double avg_ts(struct timeval* ts1, struct timeval* ts2) {
 int trigger_capture_to_memory(GPContext *context, Camera *camera, CameraFile* file, const char** data, unsigned long* size, double* trigger_ts) {
 	int		retval;
 	captured = 0;
-	double ts, avg;
+	double avg;
+	time_t lastTrigger;
 	struct timeval triggerStart, triggerEnd;
 
-
+	lastTrigger = time(NULL);
 	gettimeofday(&triggerStart, NULL);
 	retval = gp_camera_trigger_capture(camera, context);
 	gettimeofday(&triggerEnd, NULL);
-
 	*trigger_ts = avg_ts(&triggerStart, &triggerEnd);
-
-	// ts = triggerStart.tv_sec + ( triggerStart.tv_usec / 1000000.0 );
-	// avg = ts;
-	// printf("Trigger Start: %f\n", ts);
-	// ts = triggerEnd.tv_sec + ( triggerEnd.tv_usec / 1000000.0 );
-	// avg += ts;
-	// printf("Trigger End: %f\n", ts);
-	// avg /= 2;
-	// printf("Trigger Mid: %f\n", avg);
 
 	if ((retval != GP_OK) && (retval != GP_ERROR) && (retval != GP_ERROR_CAMERA_BUSY)) {
 		printf("   triggering capture had error %d\n", retval);
@@ -126,10 +113,11 @@ int trigger_capture_to_memory(GPContext *context, Camera *camera, CameraFile* fi
 			break;
 		}
 
-		if ((time(NULL) & 1) == 1)  {
+		if (time(NULL)  > (lastTrigger + 2))  { // retrigger every 2 seconds
 			// TODO: if we re-trigger a capture, should we update the returned trigger_ts?
 			//		  Need to test more. seems like it'll often end up returning the original 
 			// 		  trigger captured image when we do this?
+			lastTrigger = time(NULL);
 			gettimeofday(&triggerStart, NULL);
 			retval = gp_camera_trigger_capture(camera, context);
 			gettimeofday(&triggerEnd, NULL);
