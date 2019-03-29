@@ -20,7 +20,7 @@ static int wait_event_and_download(GPContext *context, Camera *camera, int waitt
 	CameraFilePath	*path_;
 	void			*data;
 	int				retval;
-    struct timeval	start, curtime, getFile;
+    struct timeval	start, curtime;
 
     gettimeofday(&start, NULL);
 	data = NULL;
@@ -93,7 +93,6 @@ static double avg_ts(struct timeval* ts1, struct timeval* ts2) {
 int trigger_capture_to_memory(GPContext *context, Camera *camera, CameraFile* file, const char** data, unsigned long* size, double* trigger_ts) {
 	int		retval;
 	captured = 0;
-	double avg;
 	time_t lastTrigger;
 	struct timeval triggerStart, triggerEnd;
 

@@ -4,6 +4,7 @@ project(a6000_ros)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_FLAGS "-Wall") # we should be warning free
+set(CMAKE_C_FLAGS "-Wall")
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMakeModules)
 
 option(BUILD_TESTS "Build test only" OFF)
