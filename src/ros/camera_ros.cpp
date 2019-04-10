@@ -29,13 +29,16 @@
 ***************************/
 #include "camera_node_ros.h"
 
+#include <iostream>
+
 GphotoCameraROS::GphotoCameraROS() : nh_private_("~"), img_transport_(nh_private_) {
 
     // private nh is relative to our node ie: a6000_ros_node is prepended to this:
     // this disables depth and theora plugins which are unnecessary for our stuff.
+    //      Equivale to: rosparam set /a6000_ros_node/img/disable_pub_plugins "['image_transport/compressedDepth', 'image_transport/theora', 'image_transport/compressed']"
     //      basically just want to clean up the rostopic list of all unnecessary crap. 
-    //      also dont worry about compressed images
-    nh_private_.setParam("/img/disable_pub_plugins", "['image_transport/compressedDepth', 'image_transport/theora', 'image_transport/compressed']");
+    //      also dont worry about compressed images  
+    nh_private_.setParam("/img/disable_pub_plugins", "['image_transport/compressedDepth', 'image_transport/theora']"); //,'image_transport/compressed'
 
     image_pub_ = img_transport_.advertise("img", 1);
 
@@ -65,6 +68,9 @@ void GphotoCameraROS::run() {
         if (!cam_.isConnected()) {
             cam_.attemptConnection();
         } else if (cam_.captureImage((const char**) &img_data_, &img_size_, &trigger_ts)) {
+
+            cout << "wait..." << endl;
+            cin.get();
 
             if (cam_.lastImageHasEXIF()) {
                 measuredFocalLength = cam_.getExif().FocalLength;
