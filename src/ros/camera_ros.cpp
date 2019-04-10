@@ -38,10 +38,11 @@ GphotoCameraROS::GphotoCameraROS() : nh_private_("~"), img_transport_(nh_private
     //      Equivale to: rosparam set /a6000_ros_node/img/disable_pub_plugins "['image_transport/compressedDepth', 'image_transport/theora', 'image_transport/compressed']"
     //      basically just want to clean up the rostopic list of all unnecessary crap. 
     //      also dont worry about compressed images  
-    nh_private_.setParam("/img/disable_pub_plugins", "['image_transport/compressedDepth', 'image_transport/theora']"); //,'image_transport/compressed'
+    // nh_private_.setParam("/img/disable_pub_plugins", "['image_transport/compressedDepth', 'image_transport/theora']"); //,'image_transport/compressed'
 
-    image_pub_ = img_transport_.advertise("img", 1);
+    // image_pub_ = img_transport_.advertise("img", 1);
 
+    compressed_img_pub_ = nh_private_.advertise<sensor_msgs::CompressedImage>("img/compressed", 1);
     focal_length_pub_ = nh_private_.advertise<std_msgs::Float32>("img/focal_length", 1);
     cur_focal_len_ = -1; //initialize to garbage value so it gets updated
 
@@ -95,13 +96,24 @@ void GphotoCameraROS::run() {
             // to properly bundle it into a sensor_msg
             // CV_8SC3 is opencv talk for 8 bit signed 3 channel image data
             // looking to optimize this part as much as possible:
-            cvbImg.image = cv::imdecode(cv::Mat(1, img_size_, CV_8SC3, (void*) img_data_), CV_LOAD_IMAGE_UNCHANGED);
-            cvbImg.encoding = "bgr8"; // bgr is opencv default
 
-            sensor_msgs::ImagePtr ros_image = cvbImg.toImageMsg();
-            ros_image->header.stamp = ros::Time(trigger_ts);
+            // cvbImg.image = cv::imdecode(cv::Mat(1, img_size_, CV_8SC3, (void*) img_data_), CV_LOAD_IMAGE_UNCHANGED);
+            // cvbImg.encoding = "bgr8"; // bgr is opencv default
 
-            image_pub_.publish(ros_image);
+            // sensor_msgs::ImagePtr ros_image = cvbImg.toImageMsg();
+            // ros_image->header.stamp = ros::Time(trigger_ts);
+
+            // image_pub_.publish(ros_image);
+            
+            sensor_msgs::CompressedImagePtr compressedImgMsg(new sensor_msgs::CompressedImage);
+            compressedImgMsg->header.stamp = ros::Time(trigger_ts);
+            compressedImgMsg->format = "jpeg";
+
+            // convert to a vector
+            std::vector<unsigned char> data(img_data_, img_data_ + img_size_);
+
+            compressedImgMsg->data = data;
+            compressed_img_pub_.publish(compressedImgMsg);
 
         } else {
             // Need more failure handling here

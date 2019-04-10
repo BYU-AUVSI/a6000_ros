@@ -40,6 +40,7 @@
 // in the the srv/ directory (unless from std_srvs)
 #include <std_srvs/Trigger.h>
 #include <std_msgs/Float32.h>
+#include <sensor_msgs/CompressedImage.h>
 #include "a6000_ros/ConfigGet.h"
 #include "a6000_ros/ConfigSet.h"
 
@@ -65,6 +66,7 @@ private:
     CameraConnector cam_;
     ros::NodeHandle nh_private_;
     ros::Publisher focal_length_pub_;
+    ros::Publisher compressed_img_pub_;
     image_transport::ImageTransport img_transport_;
     image_transport::Publisher image_pub_;
 
