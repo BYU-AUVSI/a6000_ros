@@ -28,7 +28,6 @@ else()
     # build ros stuff
     find_package(catkin REQUIRED COMPONENTS
     roscpp
-    image_transport
     cv_bridge
     sensor_msgs
     std_srvs
@@ -45,7 +44,7 @@ else()
 
     catkin_package(
         INCLUDE_DIRS include
-        CATKIN_DEPENDS roscpp image_transport sensor_msgs cv_bridge
+        CATKIN_DEPENDS roscpp sensor_msgs cv_bridge
     )
 
     # the main ros driver

@@ -30,9 +30,8 @@
 #pragma once
 #include "camera_connector.h"
 #include <ros/ros.h>
-#include <image_transport/image_transport.h>
 #include <cv_bridge/cv_bridge.h>
-#include <sensor_msgs/Image.h>
+#include <sensor_msgs/CompressedImage.h> // trust me, you dont wanna do an uncompressed image
 #include <opencv/cv.hpp>
 
 // Our services. These headers are
@@ -65,8 +64,7 @@ private:
     CameraConnector cam_;
     ros::NodeHandle nh_private_;
     ros::Publisher focal_length_pub_;
-    image_transport::ImageTransport img_transport_;
-    image_transport::Publisher image_pub_;
+    ros::Publisher compressed_img_pub_;
 
     // for the actual images
     char* img_data_;
