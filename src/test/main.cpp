@@ -63,11 +63,13 @@ int main(int argc, char const *argv[]) {
     char* imgData;
     unsigned long imgSize;
     char name[20];
+    double timestamp;
 
     for (int i = 0; i < 10; i++) {
 
-        if (camLink.captureImage((const char**)&imgData, &imgSize)) {
+        if (camLink.captureImage((const char**)&imgData, &imgSize, &timestamp)) {
 
+            printf("Capturetime: %f\n", timestamp);
             sprintf(name, "test-img-%d.jpg", i);
             camLink.writeImageToFile(name, imgData, imgSize);
         } else {

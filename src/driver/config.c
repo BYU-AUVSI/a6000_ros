@@ -221,7 +221,6 @@ int get_config_value_string_choices(GPContext* context, Camera* camera, const ch
  */
 int set_config_value(GPContext *context, Camera *camera, const char *key, const void *val) {
 	CameraWidget		*widget = NULL, *child = NULL;
-	CameraWidgetType	type;
 	int					ret;
 
 	ret = gp_camera_get_config(camera, &widget, context);

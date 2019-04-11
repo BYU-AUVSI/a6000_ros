@@ -82,27 +82,50 @@ static int wait_event_and_download(GPContext *context, Camera *camera, int waitt
 	return GP_OK;
 }
 
-int trigger_capture_to_memory(GPContext *context, Camera *camera, CameraFile* file, const char** data, unsigned long* size) {
+static double avg_ts(struct timeval* ts1, struct timeval* ts2) {
+	// get the average timestamp value between two time structs as a double unix epoch TS
+	double avg;
+	avg = (ts1->tv_sec + (ts1->tv_usec / 1000000.0)) + (ts2->tv_sec + (ts2->tv_usec / 1000000.0));
+	avg /= 2; //resolution error? tests seems to be pretty accurate. could be an issue for very large TS?
+	return avg;
+}
+
+int trigger_capture_to_memory(GPContext *context, Camera *camera, CameraFile* file, const char** data, unsigned long* size, double* trigger_ts) {
 	int		retval;
 	captured = 0;
+	time_t lastTrigger;
+	struct timeval triggerStart, triggerEnd;
 
+	lastTrigger = time(NULL);
+	gettimeofday(&triggerStart, NULL);
 	retval = gp_camera_trigger_capture(camera, context);
+	gettimeofday(&triggerEnd, NULL);
+	*trigger_ts = avg_ts(&triggerStart, &triggerEnd);
+
 	if ((retval != GP_OK) && (retval != GP_ERROR) && (retval != GP_ERROR_CAMERA_BUSY)) {
 		printf("   triggering capture had error %d\n", retval);
 		return retval;
 	}
 	while (!captured) {
-		retval = wait_event_and_download(context, camera, 100, file, data, size);
+		retval = wait_event_and_download(context, camera, 250, file, data, size);
 		if (captured || retval != GP_OK) {
 			break;
 		}
 
-		if ((time(NULL) & 1) == 1)  {
+		if (time(NULL)  > (lastTrigger + 2))  { // retrigger every 2 seconds
+			// TODO: if we re-trigger a capture, should we update the returned trigger_ts?
+			//		  Need to test more. seems like it'll often end up returning the original 
+			// 		  trigger captured image when we do this?
+			lastTrigger = time(NULL);
+			gettimeofday(&triggerStart, NULL);
 			retval = gp_camera_trigger_capture(camera, context);
+			gettimeofday(&triggerEnd, NULL);
 			if ((retval != GP_OK) && (retval != GP_ERROR) && (retval != GP_ERROR_CAMERA_BUSY)) {
 				printf("   triggering capture had error %d\n", retval);
+				*trigger_ts = 0;
 				break;
 			}
+			*trigger_ts = avg_ts(&triggerStart, &triggerEnd); // update the trigger timestamp?
 		}
 	}
 

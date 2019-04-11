@@ -2,7 +2,7 @@
   <name>a6000_ros</name>
   <version>0.0.1</version>
   <description>
-  Driver to stream images from a Sony a6000 on ROS using GPhoto2
+  Driver to stream images from a Sony a6000 onto ROS using GPhoto2
   </description>
   <maintainer email="contact@lenord.me">len0rd</maintainer>
   <license>BSD-3</license>
@@ -10,7 +10,6 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <depend>roscpp</depend>
-  <depend>image_transport</depend>
   <depend>cv_bridge</depend>
   <depend>sensor_msgs</depend>
   <depend>std_srvs</depend>

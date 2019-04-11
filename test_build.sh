@@ -3,5 +3,5 @@
 # from the CMakeList first
 mkdir -p build
 cd build
-cmake --config Debug --target a6000_ros_driver -- -j 6 ../
+cmake -D BUILD_TESTS=ON --config Debug --target a6000_ros_driver -- -j 6 ../
 make
