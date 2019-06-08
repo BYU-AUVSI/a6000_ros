@@ -26,6 +26,14 @@ Plug the camera into the computer via USB. You don't need an SD card for the dri
 
 By default this project's cmake configuration will generate the driver with a ROS wrapper, as well as a ROS-independent `_test` executable. This allows you to easily test driver specific functions without having to worry about ROS configuration.
 
+## Run
+
+With ros started, and the camera plugged in and powered on you can start the driver with:
+
+```bash
+rosrun a6000_ros a6000_ros_node
+```
+
 ## Services
 
 You can view/control certain camera settings through the following ros services:
