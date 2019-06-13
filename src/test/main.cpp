@@ -28,6 +28,7 @@
     OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ***************************/
 #include "camera_connector.h"
+#include "exif.h"
 
 double clock_diff_to_sec(long clock_diff)
 {
@@ -70,6 +71,12 @@ int main(int argc, char const *argv[]) {
         if (camLink.captureImage((const char**)&imgData, &imgSize, &timestamp)) {
 
             printf("Capturetime: %f\n", timestamp);
+            if (camLink.lastImageHasEXIF()) {
+                printf("Orientation:: %u\n", camLink.getExif().Orientation);
+            }
+            else {
+                printf("No EXIF?!\n");
+            }
             sprintf(name, "test-img-%d.jpg", i);
             camLink.writeImageToFile(name, imgData, imgSize);
         } else {
