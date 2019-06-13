@@ -267,6 +267,7 @@ easyexif::EXIFInfo CameraConnector::getExif() {
 
 bool CameraConnector::captureImage(const char** image_data, unsigned long* size, double* trigger_timestamp) {
     exifInfo.clear();
+    int retval;
     hasExif_ = false;
     *size = 0; // set size long to 0 -> so we can use it to check stuff later
     if (connected_) {
@@ -282,16 +283,19 @@ bool CameraConnector::captureImage(const char** image_data, unsigned long* size,
             //    (unless they copy the data to another location)
             //    at a time. You would have to change how this works if you want
             //    to allow the user to access and use multiple images simultaneously
+            // free(image_data);
             gp_file_free(currentFile_); /* Note: this invalidates image_data buffer. */
+        } else {
+            retval = gp_file_new(&currentFile_);
         }
         // trigger_capture will continue to send a trigger to the camera until we're able to successfully
         // get something off of it and into program memory. Note: this can occasionally have the side
         // effect of sending images that got stuck in the camera's buffer previously. Afaik though, images
         // always come off the camera in chronological order. but this may screw with TS stuff
-        int retVal = trigger_capture_to_memory(context, camera, currentFile_, image_data, size, trigger_timestamp);
+        retval = trigger_capture_to_memory(context, camera, currentFile_, image_data, size, trigger_timestamp);
 
-        if (retVal < GP_OK || (*size) == 0) {
-            printf("Capture failed (%d), aborting...\n", retVal);
+        if (retval < GP_OK || (*size) == 0) {
+            printf("Capture failed (%d), aborting...\n", retval);
             return false;
         }
 

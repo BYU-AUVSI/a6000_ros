@@ -44,6 +44,7 @@ static int wait_event_and_download(GPContext *context, Camera *camera, int waitt
             case GP_EVENT_CAPTURE_COMPLETE:
             case GP_EVENT_UNKNOWN:
             case GP_EVENT_TIMEOUT:
+				free(data);
                 break;
             case GP_EVENT_FOLDER_ADDED:
             case GP_EVENT_FILE_CHANGED:
@@ -57,7 +58,7 @@ static int wait_event_and_download(GPContext *context, Camera *camera, int waitt
 	}
 	if (got_path_) {
 		retval = gp_file_new(&file);
-
+		
 		printf("   camera getfile of %s\n", path_->name);
 		retval = gp_camera_file_get(camera, path_->folder, path_->name, GP_FILE_TYPE_NORMAL, file, context);
 		

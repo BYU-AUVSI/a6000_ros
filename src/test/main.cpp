@@ -79,5 +79,6 @@ int main(int argc, char const *argv[]) {
     }
 
     printf("Did it work??\n");
+    camLink.close();
     return 0;
 }
