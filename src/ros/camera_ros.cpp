@@ -31,8 +31,7 @@
 
 GphotoCameraROS::GphotoCameraROS() : nh_private_("~") {
 
-    compressed_img_pub_ = nh_private_.advertise<sensor_msgs::CompressedImage>("img/compressed", 1);
-    focal_length_pub_ = nh_private_.advertise<std_msgs::Float32>("img/focal_length", 1);
+    compressed_img_pub_ = nh_private_.advertise<uav_msgs::CompressedImgWithMeta>("img/compressed", 1);
     cur_focal_len_ = -1; //initialize to garbage value so it gets updated
 
     // setup our configuration services
@@ -46,8 +45,6 @@ GphotoCameraROS::GphotoCameraROS() : nh_private_("~") {
 
 void GphotoCameraROS::run() {
     // variables we're gonna use a bunch
-    std_msgs::Float32Ptr focalLengthMsg(new std_msgs::Float32);
-    float measuredFocalLength = -1;
     cv_bridge::CvImage cvbImg;
     double trigger_ts;
 
@@ -59,35 +56,27 @@ void GphotoCameraROS::run() {
             cam_.attemptConnection();
         } else if (cam_.captureImage((const char**) &img_data_, &img_size_, &trigger_ts)) {
 
-            if (cam_.lastImageHasEXIF()) {
-                measuredFocalLength = cam_.getExif().FocalLength;
-                // this is mildly inelegant, but since the focal length 
-                // shouldnt really change ever, we dont need to worry too
-                // much about it syncing up with images 
-                // if you do need to worry about that for some reason (fl syncing per img),
-                // then roll a custom message with image and focal length
-                // or create a message with a std_msgs/Header and a float to publish fl
-                focalLengthMsg->data = measuredFocalLength;
-                focal_length_pub_.publish(focalLengthMsg);
+            uav_msgs::CompressedImgWithMetaPtr compressedImgMsg(new uav_msgs::CompressedImgWithMeta);
 
-                if (measuredFocalLength != cur_focal_len_) {
-                    cur_focal_len_ = measuredFocalLength;
-                    printf("Lens focal length    : %f mm\n", measuredFocalLength);
-                }
+            if (cam_.lastImageHasEXIF()) {
+                compressedImgMsg->orientation  = cam_.getExif().Orientation;
+                compressedImgMsg->focal_length = cam_.getExif().FocalLength;
+            } else {
+                // just assume default orientation and focal_length:
+                compressedImgMsg->orientation = 1;
+                compressedImgMsg->focal_length = 16.0;
             }
 
             // so the raw data we get from gphoto2 / the captureImage function
             // is straight up jpg data. not raw image bytes or anything. That 
             // makes it pretty easy for us to just grab and throw onto a 
             // compressed image topic and publish that out
-            
-            sensor_msgs::CompressedImagePtr compressedImgMsg(new sensor_msgs::CompressedImage);
-            compressedImgMsg->header.stamp = ros::Time(trigger_ts);
-            compressedImgMsg->format = "jpeg";
+            compressedImgMsg->img.header.stamp = ros::Time(trigger_ts);
+            compressedImgMsg->img.format = "jpeg";
 
             // convert to a vector (format the sensor_msg expects)
             std::vector<unsigned char> data(img_data_, img_data_ + img_size_);
-            compressedImgMsg->data = data;
+            compressedImgMsg->img.data = data;
             compressed_img_pub_.publish(compressedImgMsg);
 
         } else {
