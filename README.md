@@ -12,6 +12,8 @@ The `install-deps.sh` script in the root of the repository will install a verifi
 
 - [easyExif](https://github.com/mayanklahiri/easyexif) Is used to retrieve focal length and basic timing information on images before they're published on the image topic. This dependency is small enough and the license liberal enough that its two source files are copied into this driver code. No additional configuration necessary.
 
+- [BYU-AUVSI/uav_msgs/CompressedImgWithMeta.msg](https://github.com/BYU-AUVSI/uav_msgs/tree/master/msg) This custom ROS message is used to transport the image over the ROS network. It contains critical pieces of EXIF data. Namely focal length and image orientation. Since the a6000 auto-rotates an image based on an internal accel, orientation information is used to make sure all images maintain the same orientation. Focal length is used in geolocation stuff. TODO: Since you're transporting the jpeg itself, you could probably just use a standard Compressed image topic and extract exif later.
+
 ## Setup
 
 Configure your a6000 in 'PC Remote' mode by navigating: `Menu -> Suitcase tab on top right -> Page 4 -> USB Connection -> PC Remote`.
